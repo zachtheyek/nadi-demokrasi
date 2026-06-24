@@ -1,0 +1,66 @@
+:root {
+  --paper: #fbfaf6;
+  --ink: #16130f;
+  --muted: #6b6256;
+  --line: #e3ddd0;
+  --accent: #b3402f;     /* clay red */
+  --accent2: #2f6f6b;    /* teal */
+  --gold: #c08a2d;
+  --maxw: 760px;
+  font-synthesis-weight: none;
+  -webkit-text-size-adjust: 100%;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: Georgia, "Times New Roman", serif; background: var(--paper); color: var(--ink); -webkit-font-smoothing: antialiased; line-height: 1.6; }
+.sans { font-family: "Space Grotesk", -apple-system, sans-serif; }
+a { color: var(--accent); }
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+
+header.hero { border-bottom: 1px solid var(--line); padding: 70px 0 40px; text-align: center; }
+.kicker { font-family: "Space Grotesk", sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); }
+.hero h1 { font-family: "Space Grotesk", sans-serif; font-size: clamp(34px, 7.5vw, 56px); font-weight: 700; letter-spacing: -.02em; line-height: 1.04; margin: 16px 0; }
+.hero .dek { font-size: clamp(17px, 4vw, 20px); color: var(--muted); max-width: 30em; margin: 0 auto; }
+.hero .meta { font-family: "Space Grotesk", sans-serif; font-size: 13px; color: var(--muted); margin-top: 22px; }
+
+.lede { font-size: 19px; padding: 38px 0 6px; }
+.lede p { margin-bottom: 16px; }
+
+section.ind { padding: 40px 0; border-top: 1px solid var(--line); }
+section.ind:first-of-type { border-top: 0; }
+.ind h2 { font-family: "Space Grotesk", sans-serif; font-size: clamp(24px, 6vw, 33px); font-weight: 700; letter-spacing: -.01em; line-height: 1.1; }
+.ind .q { color: var(--accent2); font-style: italic; font-size: 17px; margin-top: 6px; }
+.bignow { font-family: "Space Grotesk", sans-serif; display: flex; align-items: baseline; gap: 14px; margin: 18px 0 6px; flex-wrap: wrap; }
+.bignow .v { font-size: 52px; font-weight: 700; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.bignow .cap { font-size: 14px; color: var(--muted); max-width: 24em; }
+
+.chartbox { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 14px 8px; margin: 20px 0; box-shadow: 0 1px 0 rgba(0,0,0,.02); }
+.chartbox svg { width: 100%; display: block; overflow: visible; }
+.legendrow { font-family: "Space Grotesk", sans-serif; display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); padding: 4px 6px 8px; }
+.legendrow span { display: inline-flex; align-items: center; gap: 6px; }
+.legendrow i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+
+.ind p.body { font-size: 17px; margin-top: 14px; }
+.formula { font-family: "Space Grotesk", sans-serif; background: #f3efe6; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-top: 16px; font-size: 15px; color: #3a342b; overflow-x: auto; }
+.formula b { color: var(--accent); }
+
+.tooltip { position: fixed; pointer-events: none; background: var(--ink); color: #fff; font-family: "Space Grotesk", sans-serif; font-size: 12.5px; padding: 7px 10px; border-radius: 8px; z-index: 50; opacity: 0; transition: opacity .1s; max-width: 220px; }
+.tooltip .y { color: var(--gold); font-weight: 700; }
+
+.method { border-top: 2px solid var(--ink); margin-top: 30px; padding: 34px 0 10px; }
+.method h2 { font-family: "Space Grotesk", sans-serif; font-size: 24px; }
+.method h3 { font-family: "Space Grotesk", sans-serif; font-size: 16px; margin: 18px 0 4px; }
+.method p, .method li { font-size: 16px; color: #2b271f; }
+.method ul { padding-left: 22px; margin: 8px 0; }
+.dl { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+.dl a { font-family: "Space Grotesk", sans-serif; font-size: 14px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 16px; color: var(--ink); }
+.dl a:hover { border-color: var(--accent); }
+footer { border-top: 1px solid var(--line); margin-top: 30px; padding: 30px 0 60px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+footer a { color: var(--accent); }
+.loading { padding: 90px; text-align: center; color: var(--muted); }
+
+.gl { stroke: var(--line); stroke-width: 1; }
+.axt { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 11px; }
+.annot { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; }
+.annott { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 10.5px; font-weight: 600; }
+.dot { cursor: pointer; }
