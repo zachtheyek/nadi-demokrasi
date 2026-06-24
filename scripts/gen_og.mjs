@@ -12,8 +12,10 @@ const fonts = [
 ];
 const rows = JSON.parse(readFileSync("public/data/indicators.json", "utf8")).rows;
 const first = rows[0], last = rows[rows.length - 1];
+// drawn chevron — the → glyph isn't in the font subset (renders as tofu)
+const chev = `<div style="display:flex;width:11px;height:11px;border-top:3px solid #b3402f;border-right:3px solid #b3402f;transform:rotate(45deg);margin:0 12px"></div>`;
 const stat = (a, b, l) => `<div style="display:flex;flex-direction:column;margin-right:64px">
-  <div style="display:flex;align-items:baseline"><div style="display:flex;font-size:62px;font-weight:700;color:#16130f">${a}</div><div style="display:flex;font-size:26px;color:#6b6256;margin-left:8px">→ ${b}</div></div>
+  <div style="display:flex;align-items:center"><div style="display:flex;font-size:62px;font-weight:700;color:#16130f">${a}</div>${chev}<div style="display:flex;font-size:34px;color:#6b6256">${b}</div></div>
   <div style="display:flex;font-size:22px;color:#6b6256;margin-top:4px">${l}</div></div>`;
 
 const card = html(`
@@ -24,7 +26,7 @@ const card = html(`
       <div style="display:flex">in numbers.</div>
     </div>
     <div style="display:flex;flex-wrap:wrap;margin-top:44px">
-      ${stat(first.gallagher.toFixed(0), last.gallagher.toFixed(0), "disproportionality, 1955→2022")}
+      ${stat(first.gallagher.toFixed(0), last.gallagher.toFixed(0), "disproportionality, 1955–2022")}
       ${stat(first.enp_seats.toFixed(1), last.enp_seats.toFixed(1), "effective parties")}
       ${stat(first.winner_vote_pc.toFixed(0) + "%", last.winner_vote_pc.toFixed(0) + "%", "winner's vote share")}
     </div>
