@@ -1,8 +1,14 @@
 name: Deploy to GitHub Pages
 
+# Builds the site from the live MECo foundation (zachtheyek/meco-data). Runs on every push,
+# AND weekly. On the weekly run it FIRST checks whether the MECo data actually changed since the
+# last deploy — if not, it does nothing. public/data is generated here, not committed. So the
+# dashboard self-updates whenever the upstream data is refreshed; no human steps in steady state.
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "47 20 * * 0"   # Sundays 20:47 UTC, after meco-data's auto-refresh (20:07)
   workflow_dispatch:
 
 permissions:
@@ -15,24 +21,71 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # On scheduled runs, skip the whole build unless the MECo foundation moved since the last
+  # deploy (we stamp its commit into dist/data-version.txt). Pushes & manual runs always build.
+  changed:
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.c.outputs.go }}
+      meco_sha: ${{ steps.c.outputs.meco_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: zachtheyek/meco-data
+          path: meco-data
+      - id: c
+        run: |
+          MECO_SHA=$(git -C meco-data rev-parse HEAD)
+          echo "meco_sha=$MECO_SHA" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "go=true" >> "$GITHUB_OUTPUT"; echo "non-schedule run -> build"; exit 0
+          fi
+          LIVE=$(curl -fsS https://zachtheyek.github.io/nadi-demokrasi/data-version.txt 2>/dev/null | tr -d '[:space:]' || echo none)
+          if [ "$MECO_SHA" = "$LIVE" ]; then
+            echo "go=false" >> "$GITHUB_OUTPUT"; echo "MECo data unchanged ($MECO_SHA) -> skip"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"; echo "MECo data changed ($LIVE -> $MECO_SHA) -> build"
+          fi
+
   build:
+    needs: changed
+    if: needs.changed.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: nadi-demokrasi
+      - uses: actions/checkout@v4
+        with:
+          repository: zachtheyek/meco-data   # the shared data foundation (public)
+          path: meco-data
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pandas pyarrow numpy
+      - name: Compute indicators from MECo foundation
+        run: python scripts/compute_indicators.py   # reads ../meco-data/out -> writes public/data
+        working-directory: nadi-demokrasi
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: nadi-demokrasi/package-lock.json
       - run: npm ci
+        working-directory: nadi-demokrasi
       - run: npm run build
+        working-directory: nadi-demokrasi
         env:
           SITE_URL: https://zachtheyek.github.io/nadi-demokrasi
+      - name: Stamp the data version
+        run: echo "${{ needs.changed.outputs.meco_sha }}" > nadi-demokrasi/dist/data-version.txt
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: nadi-demokrasi/dist
 
   deploy:
-    needs: build
+    needs: [changed, build]
+    if: needs.changed.outputs.go == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

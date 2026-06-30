@@ -22,6 +22,9 @@ header.hero { border-bottom: 1px solid var(--line); padding: 70px 0 40px; text-a
 .hero h1 { font-family: "Space Grotesk", sans-serif; font-size: clamp(34px, 7.5vw, 56px); font-weight: 700; letter-spacing: -.02em; line-height: 1.04; margin: 16px 0; }
 .hero .dek { font-size: clamp(17px, 4vw, 20px); color: var(--muted); max-width: 30em; margin: 0 auto; }
 .hero .meta { font-family: "Space Grotesk", sans-serif; font-size: 13px; color: var(--muted); margin-top: 22px; }
+.herobtns { display: flex; gap: 10px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+.btn { font-family: "Space Grotesk", sans-serif; font-size: 13.5px; font-weight: 600; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 9px 15px; color: var(--ink); text-decoration: none; cursor: pointer; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
 
 .lede { font-size: 19px; padding: 38px 0 6px; }
 .lede p { margin-bottom: 16px; }
@@ -30,37 +33,85 @@ section.ind { padding: 40px 0; border-top: 1px solid var(--line); }
 section.ind:first-of-type { border-top: 0; }
 .ind h2 { font-family: "Space Grotesk", sans-serif; font-size: clamp(24px, 6vw, 33px); font-weight: 700; letter-spacing: -.01em; line-height: 1.1; }
 .ind .q { color: var(--accent2); font-style: italic; font-size: 17px; margin-top: 6px; }
-.bignow { font-family: "Space Grotesk", sans-serif; display: flex; align-items: baseline; gap: 14px; margin: 18px 0 6px; flex-wrap: wrap; }
+
+/* headline number + caption: caption vertically centered against the big number */
+.bignow { font-family: "Space Grotesk", sans-serif; display: flex; align-items: center; gap: 14px; margin: 18px 0 6px; flex-wrap: wrap; }
 .bignow .v { font-size: 52px; font-weight: 700; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
 .bignow .cap { font-size: 14px; color: var(--muted); max-width: 24em; }
 
 .chartbox { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 14px 8px; margin: 20px 0; box-shadow: 0 1px 0 rgba(0,0,0,.02); }
 .chartbox svg { width: 100%; display: block; overflow: visible; }
-.legendrow { font-family: "Space Grotesk", sans-serif; display: flex; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); padding: 4px 6px 8px; }
-.legendrow span { display: inline-flex; align-items: center; gap: 6px; }
-.legendrow i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
 
 .ind p.body { font-size: 17px; margin-top: 14px; }
-.formula { font-family: "Space Grotesk", sans-serif; background: #f3efe6; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-top: 16px; font-size: 15px; color: #3a342b; overflow-x: auto; }
-.formula b { color: var(--accent); }
+/* colored highlights instead of bold — classy, neutral, palette-matched */
+.hl { color: var(--accent); font-weight: 600; }
+.hl-t { color: var(--accent2); font-weight: 600; }
+.hl-g { color: var(--gold); font-weight: 600; }
+
+.note { font-size: 15px; color: var(--muted); line-height: 1.55; margin-top: 14px; padding-left: 13px; border-left: 2px solid var(--line); }
+.note em { font-style: italic; }
+.note a { color: var(--accent); }
+
+/* method dropdown (LaTeX + plain English), collapsed by default */
+.method { margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.method summary { font-family: "Space Grotesk", sans-serif; font-size: 13.5px; font-weight: 600; color: var(--muted); cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 9px; user-select: none; }
+.method summary::-webkit-details-marker { display: none; }
+.method summary:hover { color: var(--ink); }
+.method .chev { width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .15s; flex: none; }
+.method[open] .chev { transform: rotate(45deg); }
+.method-body { padding: 8px 2px 2px; }
+.eqrow { display: flex; align-items: center; gap: 12px; margin: 6px 0 2px; }
+.eq { flex: 1; display: flex; justify-content: center; overflow-x: auto; padding: 4px 0; }
+.eqno { font-family: "Space Grotesk", sans-serif; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; flex: none; }
+.katex { font-size: 1.12em; }
+.where { font-size: 15px; color: #3a342b; margin-top: 8px; line-height: 1.55; }
+.where strong { color: var(--accent); font-weight: 700; }
+.where em { font-style: italic; }
 
 .tooltip { position: fixed; pointer-events: none; background: var(--ink); color: #fff; font-family: "Space Grotesk", sans-serif; font-size: 12.5px; padding: 7px 10px; border-radius: 8px; z-index: 50; opacity: 0; transition: opacity .1s; max-width: 220px; }
 .tooltip .y { color: var(--gold); font-weight: 700; }
 
-.method { border-top: 2px solid var(--ink); margin-top: 30px; padding: 34px 0 10px; }
-.method h2 { font-family: "Space Grotesk", sans-serif; font-size: 24px; }
-.method h3 { font-family: "Space Grotesk", sans-serif; font-size: 16px; margin: 18px 0 4px; }
-.method p, .method li { font-size: 16px; color: #2b271f; }
-.method ul { padding-left: 22px; margin: 8px 0; }
-.dl { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
-.dl a { font-family: "Space Grotesk", sans-serif; font-size: 14px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 16px; color: var(--ink); }
-.dl a:hover { border-color: var(--accent); }
+/* bottom method & limitations section */
+.method-sec { border-top: 2px solid var(--ink); margin-top: 30px; padding: 34px 0 10px; }
+.method-sec h2 { font-family: "Space Grotesk", sans-serif; font-size: 24px; }
+.method-sec h3 { font-family: "Space Grotesk", sans-serif; font-size: 16px; margin: 20px 0 6px; }
+.method-sec p, .method-sec li { font-size: 16px; color: #2b271f; }
+.method-sec ul { padding-left: 22px; margin: 8px 0; }
+.method-sec li { margin: 7px 0; }
+.method-sec li b { color: var(--accent); }
+.dl { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; align-items: center; }
+.dl a, .citelink { font-family: "Space Grotesk", sans-serif; font-size: 14px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 10px 16px; color: var(--ink); cursor: pointer; }
+.dl a:hover, .citelink:hover { border-color: var(--accent); color: var(--accent); }
 footer { border-top: 1px solid var(--line); margin-top: 30px; padding: 30px 0 60px; color: var(--muted); font-size: 14px; line-height: 1.7; }
 footer a { color: var(--accent); }
 .loading { padding: 90px; text-align: center; color: var(--muted); }
 
-.gl { stroke: var(--line); stroke-width: 1; }
+/* cite modal */
+.citemodal { position: fixed; inset: 0; background: rgba(22,19,15,.45); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 60; }
+.citecard { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; max-width: 620px; width: 100%; max-height: 85vh; overflow: auto; padding: 22px 22px 24px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+.citehd { display: flex; justify-content: space-between; align-items: center; font-family: "Space Grotesk", sans-serif; font-size: 18px; font-weight: 700; }
+.citex { font-size: 24px; line-height: 1; background: none; border: 0; color: var(--muted); cursor: pointer; }
+.citenote { font-size: 14px; color: var(--muted); margin: 8px 0 16px; line-height: 1.5; }
+.citeblock { margin-bottom: 14px; }
+.citelabel { font-family: "Space Grotesk", sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.copy { font-family: "Space Grotesk", sans-serif; font-size: 11px; font-weight: 600; border: 1px solid var(--line); background: #fff; border-radius: 7px; padding: 3px 9px; color: var(--ink); cursor: pointer; }
+.copy:hover { border-color: var(--accent); color: var(--accent); }
+.citecard pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; line-height: 1.5; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; color: #2b271f; }
+
+/* toast */
+.toast { position: fixed; top: 18px; right: 18px; background: var(--ink); color: #fff; font-family: "Space Grotesk", sans-serif; font-size: 13px; font-weight: 600; padding: 10px 14px; border-radius: 10px; opacity: 0; transform: translateY(-8px); transition: opacity .18s, transform .18s; z-index: 70; pointer-events: none; }
+.toast.on { opacity: 1; transform: translateY(0); }
+
+/* chart elements */
+.gl { stroke: #efe9dc; stroke-width: 1; }
+.frame { stroke: #cfc7b6; stroke-width: 1; }
+.zero { stroke: var(--muted); stroke-dasharray: 2 3; stroke-width: 1; opacity: .55; }
+.gapfill { fill: rgba(179,64,47,.07); }
+.leader { stroke: #cfc7b6; stroke-width: 1; }
 .axt { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 11px; }
-.annot { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; }
+.endlab { font-family: "Space Grotesk", sans-serif; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.endlab.focal { font-size: 13px; }
+.endname { font-family: "Space Grotesk", sans-serif; font-size: 10.5px; fill: var(--muted); }
+.annot { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; opacity: .5; }
 .annott { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 10.5px; font-weight: 600; }
 .dot { cursor: pointer; }
