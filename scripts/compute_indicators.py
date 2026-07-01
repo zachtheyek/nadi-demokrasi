@@ -107,6 +107,15 @@ for elec, g in fed.groupby("election"):
     top_blocs = [{"label": bloc_label(r.bloc_uid), "seats": int(r.seats),
                   "seat_pc": round(float(r.s) * 100, 1)} for _, r in tb.head(5).iterrows()]
 
+    # Descriptive representation: share of elected MPs who are women.
+    women_pc = 100.0 * float((g[g.won].sex == "F").sum()) / n_seats
+    # Multi-cornered contests: mean candidates per seat, and share of 3+-cornered fights.
+    cand_per_seat = float(st.n_candidates.mean())
+    three_plus_pc = 100.0 * float((st.n_candidates >= 3).mean())
+    # Competitiveness: share of federal seats won by a margin under 5 percentage points
+    # (uncontested seats have no margin → counted as safe, which they are).
+    marginal_pc = 100.0 * float((st.majority_perc < 5).sum()) / n_seats
+
     rows.append({
         "election": elec, "year": year, "n_seats": int(n_seats),
         "n_blocs": int((by_bloc.votes > 0).sum()),
@@ -115,6 +124,10 @@ for elec, g in fed.groupby("election"):
         "malapportionment": (round(malapp, 2) if malapp is not None else None),
         "volatility": (round(float(volatility), 2) if volatility is not None else None),
         "turnout": (round(turnout, 1) if not np.isnan(turnout) else None),
+        "women_pc": round(women_pc, 1),
+        "cand_per_seat": round(cand_per_seat, 2),
+        "three_plus_pc": round(three_plus_pc, 1),
+        "marginal_pc": round(marginal_pc, 1),
         "winner": bloc_label(win.bloc_uid),
         "winner_vote_pc": round(float(win.v) * 100, 1),
         "winner_seat_pc": round(float(win.s) * 100, 1),
@@ -130,6 +143,41 @@ df.drop(columns=["top_blocs"]).to_csv(OUT / "indicators.csv", index=False)
 rows_sorted = sorted(rows, key=lambda r: r["year"])
 (OUT / "indicators.json").write_text(json.dumps({"rows": rows_sorted}, separators=(",", ":"), allow_nan=False))
 
-pd.set_option("display.width", 200)
-print(df[["year", "winner", "winner_vote_pc", "winner_seat_pc", "winner_seat_bonus",
-          "gallagher", "malapportionment", "enp_votes", "enp_seats", "volatility", "turnout"]].to_string(index=False))
+# Bundle the data + this script + a how-to into a single downloadable zip, so a reader can
+# reproduce every figure on the page. Regenerated on each run.
+import zipfile
+from datetime import date, timezone, datetime
+readme = f"""Nadi Demokrasi — reproducible democracy indicators for Malaysia
+================================================================
+Generated: {datetime.now(timezone.utc).date().isoformat()}
+
+Contents
+  indicators.csv          one row per federal general election (1955- ), flat table
+  indicators.json         the same rows, plus each election's top blocs by seats
+  compute_indicators.py   the exact script that produced them
+
+Every figure on https://zachtheyek.github.io/nadi-demokrasi/ is computed from these
+files — nothing on the page is hand-entered.
+
+Reproduce
+  1. Clone the data foundation next to this folder:
+       git clone https://github.com/zachtheyek/meco-data
+  2. pip install pandas pyarrow numpy
+  3. python compute_indicators.py         # writes public/data/indicators.{{csv,json}}
+     (or point it elsewhere with MECO_OUT=/path/to/meco-data/out)
+
+Source & credit
+  All underlying data is the Malaysian Election Corpus (MECo) by Thevesh Thevananthan,
+  https://electiondata.my — CC0, peer-reviewed in Scientific Data 13, 190 (2026).
+  Indicators follow Laakso-Taagepera (1979), Gallagher (1991), Pedersen (1979) and
+  Samuels-Snyder (2001). Dashboard code: MIT. This bundle: same terms as the sources.
+"""
+with zipfile.ZipFile(OUT / "nadi-demokrasi-data.zip", "w", zipfile.ZIP_DEFLATED) as z:
+    z.write(OUT / "indicators.csv", "indicators.csv")
+    z.write(OUT / "indicators.json", "indicators.json")
+    z.write(Path(__file__), "compute_indicators.py")
+    z.writestr("README.txt", readme)
+
+pd.set_option("display.width", 220)
+print(df[["year", "winner", "winner_vote_pc", "winner_seat_pc", "winner_seat_bonus", "gallagher",
+          "malapportionment", "enp_seats", "volatility", "turnout", "women_pc", "cand_per_seat", "marginal_pc"]].to_string(index=False))

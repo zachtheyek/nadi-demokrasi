@@ -8,6 +8,8 @@ import "./style.css";
 const BASE = import.meta.env.BASE_URL;
 const SITE = location.origin + BASE;
 const ORCID = "0000-0002-2532-4883";
+// the X (formerly Twitter) wordmark, used in place of the letter "X" on share buttons
+const X_ICON = `<svg class="xlogo" viewBox="0 0 24 24" aria-label="X" role="img"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
 const app = document.getElementById("app")!;
 
 interface Bloc { label: string; seats: number; seat_pc: number; }
@@ -15,6 +17,7 @@ interface Row {
   election: string; year: number; n_seats: number; n_blocs: number;
   enp_votes: number; enp_seats: number; gallagher: number; malapportionment: number | null;
   volatility: number | null; turnout: number | null;
+  women_pc: number; cand_per_seat: number; three_plus_pc: number; marginal_pc: number;
   winner: string; winner_vote_pc: number; winner_seat_pc: number; winner_seat_bonus: number;
   top_blocs: Bloc[];
 }
@@ -59,7 +62,7 @@ function showToast(msg: string) { toast.textContent = msg; toast.classList.add("
    point callouts for peaks/dips (with the value and an apostrophe-year), horizontal reference
    lines/bands for meaningful thresholds, and faint shaded regions for named periods. */
 interface Series { label: string; color: string; focal?: boolean; y: (r: Row) => number | null; }
-interface PointC { year: number; value: number; tag: string; place?: "above" | "below"; }
+interface PointC { year: number; value: number; tag: string; place?: "above" | "below" | "left" | "right"; }
 interface YRef { at: number; to?: number; label: string; }
 interface XBand { from: number; to: number; label?: string; }
 interface GapC { year: number; label: string; }
@@ -126,8 +129,8 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
   g += `<text class="axt" x="${m.l - 6}" y="${(plotTop + 4).toFixed(1)}" text-anchor="end">${o.fmt(hi)}</text>`;
   g += `<text class="axt" x="${m.l - 6}" y="${(plotBot + 3).toFixed(1)}" text-anchor="end">${o.fmt(lo)}</text>`;
 
-  // x year labels (every other election, always the last)
-  ROWS.forEach((r, i) => { if (i % 2 === 0 || i === ROWS.length - 1) g += `<text class="axt" x="${x(r.year).toFixed(1)}" y="${H - 8}" text-anchor="middle">${String(r.year).slice(2)}</text>`; });
+  // x year labels (every other election, always the last), apostrophe-prefixed so they read as years
+  ROWS.forEach((r, i) => { if (i % 2 === 0 || i === ROWS.length - 1) g += `<text class="axt" x="${x(r.year).toFixed(1)}" y="${H - 8}" text-anchor="middle">${yy(r.year)}</text>`; });
 
   // gap fill between two series (shows the seat bonus / squeeze directly)
   if (o.gapFill && o.series.length === 2) {
@@ -180,24 +183,45 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
   (o.points || []).forEach((p) => {
     const s = o.series.find((ss) => ss.y(at(p.year)!) != null) || o.series[0];
     const cx = x(p.year), cy = y(p.value);
-    const atRight = p.year === xMax;
-    const anchor = atRight ? "end" : "middle";
-    const tx = atRight ? cx - 7 : cx;
     const tag = `${yy(p.year)} (${p.tag})`;
+    const w = Math.max(o.fmt(p.value).length * 6.4, tag.length * 5.7);
+    const drawDot = () => `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${s.color}"/>`;
+    const drawText = (tx: number, vY: number, sY: number, anchor: string) =>
+      `<text class="cval" x="${tx.toFixed(1)}" y="${vY.toFixed(1)}" text-anchor="${anchor}" fill="${s.color}">${o.fmt(p.value)}</text>` +
+      `<text class="ctag" x="${tx.toFixed(1)}" y="${sY.toFixed(1)}" text-anchor="${anchor}">${tag}</text>`;
+
+    if (p.place === "left" || p.place === "right") {
+      // beside the point, at its height (keeps dips off the line)
+      const dir = p.place === "left" ? -1 : 1;
+      const anchor = p.place === "left" ? "end" : "start";
+      const tx = cx + dir * 9;
+      let vY = cy - 3, sY = cy + 9;
+      const x0 = p.place === "left" ? tx - w : tx, x1 = p.place === "left" ? tx : tx + w;
+      for (let k = 0; k < 8; k++) { if (fits({ x0, x1, y0: vY - 10, y1: sY + 3 })) break; vY += 13; sY += 13; }
+      vY = clampY(vY); sY = vY + 12;
+      placed.push({ x0, x1, y0: vY - 10, y1: sY + 3 });
+      g += drawDot();
+      g += `<line class="leader" x1="${(cx + dir * 5).toFixed(1)}" y1="${cy.toFixed(1)}" x2="${(tx - dir * 2).toFixed(1)}" y2="${((vY + sY) / 2).toFixed(1)}"/>`;
+      g += drawText(tx, vY, sY, anchor);
+      return;
+    }
+
+    // above / below, with the label pushed to the correct side of edge points
+    const atRight = p.year === xMax, atLeft = p.year === xMin;
+    const anchor = atRight ? "end" : atLeft ? "start" : "middle";
+    const tx = atRight ? cx - 7 : atLeft ? cx + 7 : cx;
+    const x0 = atRight ? tx - w : atLeft ? tx : tx - w / 2, x1 = atRight ? tx : atLeft ? tx + w : tx + w / 2;
     let place = p.place || "above";
     if (place === "above" && cy - 30 < plotTop) place = "below";
     if (place === "below" && cy + 30 > plotBot) place = "above";
-    const w = Math.max(o.fmt(p.value).length * 6.4, tag.length * 5.7);
-    const x0 = atRight ? tx - w : tx - w / 2, x1 = atRight ? tx : tx + w / 2;
     let vY = place === "above" ? cy - 26 : cy + 15;
     for (let k = 0; k < 8; k++) { if (fits({ x0, x1, y0: vY - 11, y1: vY + 13 })) break; vY += place === "above" ? -13 : 13; }
     vY = clampY(vY);
     const sY = vY + 12;
     placed.push({ x0, x1, y0: vY - 11, y1: sY + 3 });
-    g += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${s.color}"/>`;
+    g += drawDot();
     g += `<line class="leader" x1="${cx.toFixed(1)}" y1="${(cy + (place === "above" ? -5 : 5)).toFixed(1)}" x2="${tx.toFixed(1)}" y2="${(place === "above" ? sY + 2 : vY - 10).toFixed(1)}"/>`;
-    g += `<text class="cval" x="${tx.toFixed(1)}" y="${vY.toFixed(1)}" text-anchor="${anchor}" fill="${s.color}">${o.fmt(p.value)}</text>`;
-    g += `<text class="ctag" x="${tx.toFixed(1)}" y="${sY.toFixed(1)}" text-anchor="${anchor}">${tag}</text>`;
+    g += drawText(tx, vY, sY, anchor);
   });
 
   host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${o.yLabel}">${g}</svg>`;
@@ -255,6 +279,10 @@ function sections(): Sec[] {
   ROWS.forEach((r, i) => { if (r.winner_seat_pc >= 200 / 3) lastAbove = i; });
   const twoThirdsYr = (lastAbove >= 0 && lastAbove < ROWS.length - 1) ? ROWS[lastAbove + 1].year : null;
   const big3 = L.top_blocs.slice(0, 3);
+  // new indicators
+  const candLow = arg("cand_per_seat", -1), candPeak = arg("cand_per_seat", 1);
+  const margPeak = arg("marginal_pc", 1);
+  const wPeak = arg("women_pc", 1);
 
   const hl = (s: string) => `<span class="hl">${s}</span>`;
   const hlt = (s: string) => `<span class="hl-t">${s}</span>`;
@@ -288,7 +316,7 @@ function sections(): Sec[] {
       share: `${num(L.malapportionment ?? 0, 1)}% of Malaysia's parliamentary seats are mis-allocated relative to one-person-one-vote (${L.year}) — among the most malapportioned democracies in the world.`,
       opts: {
         series: [{ label: "MAL", color: C.red, focal: true, y: (r) => r.malapportionment }],
-        yLabel: "Malapportionment index", fmt: (v) => num(v) + "%", yMin: 0,
+        yLabel: "Malapportionment index", fmt: (v) => num(v, 1) + "%", yMin: 0,
         yRefs: [{ at: 5, label: "most democracies ≤ 5%" }],
         points: [{ year: mLow.year, value: mLow.malapportionment ?? 0, tag: "lowest", place: "below" }, { year: mPeak.year, value: mPeak.malapportionment ?? 0, tag: "peak" }],
       },
@@ -313,7 +341,7 @@ function sections(): Sec[] {
         yLabel: "Winner's seat share vs vote share", fmt: (v) => num(v) + "%", yMin: 0, yMax: 100,
         gapFill: true, gap: { year: bPeak.year, label: "+" + num(bPeak.winner_seat_bonus, 1) + "pp bonus" },
         yRefs: [{ at: 50, label: "majority" }],
-        points: minExemplar ? [{ year: minExemplar.year, value: minExemplar.winner_seat_pc, tag: "won on " + num(minExemplar.winner_vote_pc) + "%", place: "below" }] : [],
+        points: minExemplar ? [{ year: minExemplar.year, value: minExemplar.winner_seat_pc, tag: "won on " + num(minExemplar.winner_vote_pc) + "%", place: "above" }] : [],
       },
       body: `The gap between the winner's seats (red) and votes (teal) is the bonus first-past-the-post hands the largest bloc. It peaked at ${hl("+" + num(bPeak.winner_seat_bonus, 1) + " points in " + bPeak.year)}, when ${bPeak.winner} turned ${num(bPeak.winner_vote_pc)}% of votes into ${num(bPeak.winner_seat_pc)}% of seats.${minRecent ? ` On ${minorityWins.length === 1 ? "one occasion" : minorityWins.length + " occasions"} the largest bloc even won a majority of seats on a ${hlt("minority of the vote")} — most recently in ${minRecent}.` : ""} By ${hl(String(L.year))} ${bNow < -0.5 ? `it had vanished (${hl(num(bNow, 1))})` : Math.abs(bNow) <= 2 ? `it had all but vanished (${hl(num(bNow, 1))})` : `it stood at ${hl(num(bNow, 1))}`}${isFirstNeg ? `: for the first time, the largest bloc held a smaller share of seats than of votes` : ""}${hung ? `, in a hung parliament` : ""}.`,
       method: {
@@ -332,7 +360,7 @@ function sections(): Sec[] {
         yLabel: "Winner's vote share", fmt: (v) => num(v) + "%", yMin: 0, yMax: 90,
         yRefs: [{ at: 50, label: "majority of the vote" }],
         points: [
-          { year: F.year, value: F.winner_vote_pc, tag: "high" },
+          { year: F.year, value: F.winner_vote_pc, tag: "high", place: "right" as const },
           ...(belowHalf ? [{ year: belowHalf.year, value: belowHalf.winner_vote_pc, tag: "fell below half", place: "below" as const }] : []),
           { year: L.year, value: L.winner_vote_pc, tag: "low", place: "below" as const },
         ],
@@ -362,7 +390,23 @@ function sections(): Sec[] {
         where: `<strong>p<sub>i</sub></strong> is bloc <em>i</em>'s share — of votes for the votes line, of seats for the seats line. Two equally-sized blocs give N = 2; one dominant bloc pulls N toward 1. It is the Laakso–Taagepera index, the standard count of "parties that matter".`,
       },
     },
-    /* 6 ─ how much the vote moves */
+    /* 6 ─ how many contenders per seat */
+    {
+      id: "multi-cornered", h2: "Multi-cornered contests", q: "How many names on the ballot?",
+      now: num(L.cand_per_seat, 1),
+      nowCap: `candidates on the average ballot in ${L.year} — ${num(L.three_plus_pc)}% of seats were three-cornered or more.`,
+      share: `Malaysia's ballots have crowded: the average federal seat drew ${num(L.cand_per_seat, 1)} candidates in ${L.year} (up from about 2 in the two-coalition era), and ${num(L.three_plus_pc)}% of seats were three-cornered or more.`,
+      opts: {
+        series: [{ label: "Candidates", color: C.red, focal: true, y: (r) => r.cand_per_seat }],
+        yLabel: "Candidates per seat", fmt: (v) => num(v, 1), yMin: 2,
+        points: [{ year: candLow.year, value: candLow.cand_per_seat, tag: "fewest", place: "below" }, { year: candPeak.year, value: candPeak.cand_per_seat, tag: "peak" }],
+      },
+      body: `For most of Malaysia's history a seat was a straight fight — about ${num(F.cand_per_seat, 1)} candidates on the ballot. As the two-coalition system hardened, contests narrowed to a low of ${hlt(num(candLow.cand_per_seat, 1) + " in " + candLow.year)}. Then they splintered: by ${L.year} the average seat drew ${hl(num(L.cand_per_seat, 1) + " candidates")}, and ${hl(num(L.three_plus_pc) + "% were three-cornered or more")}. Multi-cornered fights are how a bloc can win a seat on a minority of the vote — much of the machinery behind the disproportionality above.`,
+      method: {
+        text: `The mean number of candidates contesting each federal seat. Read it with fragmentation: more blocs mean more names on the ballot and more three-way splits — which, under first-past-the-post, let winners take seats with well under half the vote.`,
+      },
+    },
+    /* 7 ─ how much the vote moves */
     {
       id: "volatility", h2: "Volatility", q: "How much does the vote move between elections?",
       now: num(L.volatility ?? 0),
@@ -374,7 +418,8 @@ function sections(): Sec[] {
         xBands: domCalm ? [{ from: domCalm.year - 2, to: domCalm.year + 2, label: "one-coalition calm" }] : [],
         points: [
           ...volTop.map((r) => ({ year: r.year, value: r.volatility!, tag: "peak" })),
-          ...volDips.map((r) => ({ year: r.year, value: r.volatility!, tag: "low", place: "below" as const })),
+          // dips sit to the SIDES so they don't collide with the line at the bottom of the V
+          ...volDips.slice().sort((a, b) => a.year - b.year).map((r, i) => ({ year: r.year, value: r.volatility!, tag: "low", place: (i === 0 ? "left" : "right") as const })),
         ],
       },
       body: `Pedersen volatility sums how much each bloc's vote share shifts from one election to the next. The largest realignments by this measure came in ${hl(volTop.map((r) => r.year).sort((a, b) => a - b).join(", "))} — each a wholesale redrawing of who voted for whom. The calm stretches between, such as the ${hlt(decadePhrase(domCalm.year))}, mark periods of entrenched one-coalition dominance.`,
@@ -384,21 +429,56 @@ function sections(): Sec[] {
         where: `<strong>v<sub>i,t</sub></strong> is bloc <em>i</em>'s vote share at election <em>t</em>. Blocs are matched across elections with pure renames collapsed (PERIKATAN→BN, BA→PR→PH), so relabelling is not counted as change — but genuine splits and mergers are. The first election has no prior to compare against, so it has no value.`,
       },
     },
-    /* 7 ─ do people show up */
+    /* 8 ─ how close the contests are */
+    {
+      id: "marginal", h2: "Marginal seats", q: "How close are the contests?",
+      now: num(L.marginal_pc, 1) + "%",
+      nowCap: `of seats in ${L.year} were won by less than 5 points — about one seat in ${Math.round(100 / L.marginal_pc)}.`,
+      share: `About one in ${Math.round(100 / L.marginal_pc)} Malaysian seats is now a knife-edge: ${num(L.marginal_pc, 1)}% were won by under 5 points in ${L.year}, far above the norm for most of the country's history.`,
+      opts: {
+        series: [{ label: "Marginal", color: C.red, focal: true, y: (r) => r.marginal_pc }],
+        yLabel: "Share of marginal seats", fmt: (v) => num(v, 1) + "%", yMin: 0,
+        points: [{ year: margPeak.year, value: margPeak.marginal_pc, tag: "peak" }, { year: L.year, value: L.marginal_pc, tag: "now", place: "below" }],
+      },
+      body: `A marginal seat — won by less than five percentage points — is where an election actually turns. Malaysia's map was long dominated by safe seats, but contestability has risen sharply: marginals peaked at ${hl(num(margPeak.marginal_pc, 1) + "% in " + margPeak.year)} and stood at ${hl(num(L.marginal_pc, 1) + "% in " + L.year)} — about ${hlt("one seat in " + Math.round(100 / L.marginal_pc))} decided on a knife-edge.`,
+      note: `A small margin can mean two different things: a genuine two-way cliffhanger, or a multi-cornered split that hands a bloc the seat on a thin plurality. Read this alongside multi-cornered contests above.`,
+      method: {
+        text: `The share of federal seats where the winner's margin over the runner-up was under 5 percentage points of the valid vote. Uncontested seats have no margin and count as safe, which they are.`,
+      },
+    },
+    /* 9 ─ do people show up */
     {
       id: "turnout", h2: "Turnout", q: "Do Malaysians show up?",
       now: num(L.turnout ?? 0) + "%",
       nowCap: `turnout in ${L.year}, the first election with automatic registration and voting at 18.`,
-      share: `Malaysian turnout has held between ${num(tLow.turnout ?? 0)}% and ${num(tPeak.turnout ?? 0)}% for seven decades, peaking at ${num(tPeak.turnout ?? 0, 1)}% in ${tPeak.year}.`,
+      share: `Malaysian turnout has held between ${num(tLow.turnout ?? 0)}% and ${num(tPeak.turnout ?? 0)}% for seven decades, peaking at ${num(tPeak.turnout ?? 0)}% in ${tPeak.year}.`,
       opts: {
         series: [{ label: "Turnout", color: C.gold, focal: true, y: (r) => r.turnout }],
         yLabel: "Voter turnout", fmt: (v) => num(v) + "%", yMin: 60, yMax: 90,
         points: [{ year: tLow.year, value: tLow.turnout ?? 0, tag: "low", place: "below" }, { year: tPeak.year, value: tPeak.turnout ?? 0, tag: "peak" }, { year: L.year, value: L.turnout ?? 0, tag: "now", place: "below" }],
       },
-      body: `Turnout has stayed high — between ${hlg(num(tLow.turnout ?? 0) + "% and " + num(tPeak.turnout ?? 0) + "%")} across seven decades. The peak was ${hl(num(tPeak.turnout ?? 0, 1) + "% in " + tPeak.year)}, the most fiercely contested election of the BN era. It then fell to ${hl(num(L.turnout ?? 0) + "%")} in ${L.year}, a drop of ${num(tDrop, 1)} points from ${tPrev.year}, despite millions of newly-enrolled young voters under automatic registration and Undi18 — a puzzle worth its own study.`,
+      body: `Turnout has stayed high — between ${hlg(num(tLow.turnout ?? 0) + "% and " + num(tPeak.turnout ?? 0) + "%")} across seven decades. The peak was ${hl(num(tPeak.turnout ?? 0) + "% in " + tPeak.year)}, the most fiercely contested election of the BN era. It then fell to ${hl(num(L.turnout ?? 0) + "%")} in ${L.year}, a drop of ${num(tDrop, 1)} points from ${tPrev.year}, despite millions of newly-enrolled young voters under automatic registration and Undi18 — a puzzle worth its own study.`,
       method: {
         eq: String.raw`T = \dfrac{1}{n} \textstyle\sum_c \dfrac{b_c}{e_c}`,
         where: `for each seat <em>c</em>, <strong>b<sub>c</sub></strong> is ballots cast and <strong>e<sub>c</sub></strong> registered electors; <strong>n</strong> is the number of seats. The denominator is <em>registered</em> voters — so before automatic registration in 2018, ${hlg("older figures overstate participation among the voting-age population")}, because many eligible adults were never on the roll.`,
+      },
+    },
+    /* 10 ─ who actually gets elected */
+    {
+      id: "women", h2: "Women in Parliament", q: "Who actually gets elected?",
+      now: num(L.women_pc, 1) + "%",
+      nowCap: `of MPs elected in ${L.year} were women — a chamber that looks little like the electorate it answers to.`,
+      share: `Malaysia's Parliament is ${num(L.women_pc, 1)}% women (${L.year}) — up from near-zero in ${F.year}, but still well below the ~30% many democracies treat as a floor.`,
+      opts: {
+        series: [{ label: "Women MPs", color: C.red, focal: true, y: (r) => r.women_pc }],
+        yLabel: "Share of women MPs", fmt: (v) => num(v, 1) + "%", yMin: 0,
+        yRefs: [{ at: 30, label: "~30% common benchmark" }],
+        points: [{ year: F.year, value: F.women_pc, tag: "near zero" }, { year: wPeak.year, value: wPeak.women_pc, tag: "peak" }, { year: L.year, value: L.women_pc, tag: "now", place: "below" }],
+      },
+      body: `The people's house has never resembled the people who elect it. Women held just ${hlt(num(F.women_pc, 1) + "% of seats in " + F.year)}; the share climbed to a peak of ${hl(num(wPeak.women_pc, 1) + "% in " + wPeak.year)}, then eased to ${hl(num(L.women_pc, 1) + "% in " + L.year)}. That leaves Parliament far below the ${hl("~30%")} many democracies treat as a floor — and further still from the half of the population women make up.`,
+      note: `This is <em>descriptive</em> representation — who sits in the chamber — not how they vote. The corpus also records candidates' ethnicity, a more contested measure that is not charted here.`,
+      method: {
+        text: `The share of elected federal MPs who are women. A count, not a formula — but the clearest single check on how much the winning benches resemble the electorate.`,
       },
     },
   ];
@@ -419,8 +499,7 @@ function methodHTML(m: Method, eqNo: number | null): string {
 
 function sectbar(s: Sec): string {
   return `<div class="sectbar">
-    <a class="anchor" href="#${s.id}" data-link="${s.id}" title="Copy link to this section" aria-label="Copy link">#</a>
-    <button class="sharex" data-share="${s.id}" title="Share this section on X">Share on X</button>
+    <button class="sharex" data-share="${s.id}" title="Share this section on X">Share on ${X_ICON}</button>
   </div>`;
 }
 
@@ -434,21 +513,22 @@ function render() {
   <header class="hero"><div class="wrap">
     <div class="kicker">Nadi Demokrasi · The Pulse of Democracy</div>
     <h1>Malaysia's democracy,<br>in numbers</h1>
-    <p class="dek">Seven decades of general elections measured with the standard tools of political science — disproportionality, malapportionment, fragmentation, volatility and turnout.</p>
+    <p class="dek">Seven decades of general elections measured with the standard tools of political science — disproportionality, malapportionment, fragmentation, competitiveness, representation and turnout.</p>
     <div class="meta">${ROWS.length} federal general elections · ${F.year}–${L.year} · reproducible &amp; citable</div>
     <div class="herobtns">
-      <button class="btn" id="citeBtn">❝ Cite this work</button>
-      <button class="btn" id="shareBtn">Share on X</button>
-      <a class="btn" href="${BASE}data/indicators.csv" download>↓ Data (CSV)</a>
+      <button class="btn" id="shareBtn">Share on ${X_ICON}</button>
+      <a class="btn" href="${BASE}data/nadi-demokrasi-data.zip" download>↓ Data</a>
+      <button class="btn" id="citeBtn">❝ Cite</button>
     </div>
   </div></header>
   <div class="wrap">
     <div class="lede">
-      <p>Numbers don't capture everything about a democracy — but a handful of well-defined indices, computed the same way every election, reveal the deep shifts that headlines miss. Here are seven, drawn from the <a href="https://electiondata.my" target="_blank" rel="noopener">Malaysian Election Corpus</a>. Each pairs one chart — its complete history since ${F.year} — with the method behind it. Nothing is typed in by hand: every figure is computed straight from the official results, so the dashboard updates itself as new elections are added.</p>
+      <p>Numbers don't capture everything about a democracy — but a handful of well-defined indices, computed the same way every election, reveal the deep shifts that headlines miss. Here are ${secs.length}, drawn from the <a href="https://electiondata.my" target="_blank" rel="noopener">Malaysian Election Corpus</a> — each a single chart tracing its full history since ${F.year}, paired with the method behind it. Nothing is typed in by hand: every figure is computed straight from the official results, so the page keeps itself current as new elections are added.</p>
     </div>
     ${secs.map((s, i) => `
       <section class="ind" id="${s.id}">
         <div class="ind-head">
+          <a class="anchor" href="#${s.id}" data-link="${s.id}" title="Copy link to this section" aria-label="Copy link to this section">#</a>
           <div><h2>${s.h2}</h2><div class="q">${s.q}</div></div>
           ${sectbar(s)}
         </div>
@@ -474,8 +554,8 @@ function render() {
         <li><b>No competitiveness, marginality, or descriptive-representation measure yet.</b> The indicators describe the national party system, not how close individual seats were, nor who the MPs are (the corpus does carry candidate sex and ethnicity, and seat margins — natural further dimensions).</li>
       </ul>
       <div class="dl">
-        <a href="${BASE}data/indicators.csv" download>↓ indicators.csv</a>
-        <a href="${BASE}data/indicators.json" download>↓ indicators.json</a>
+        <button class="citelink" id="shareBtn2">Share on ${X_ICON}</button>
+        <a href="${BASE}data/nadi-demokrasi-data.zip" download>↓ Data (CSV + JSON + script)</a>
         <a href="https://github.com/zachtheyek/nadi-demokrasi" target="_blank" rel="noopener">Source &amp; formulae →</a>
         <button class="citelink" id="citeBtn2">❝ Cite this work</button>
       </div>
@@ -488,7 +568,9 @@ function render() {
   secs.forEach((s) => renderChart(app.querySelector(`[data-sec="${s.id}"]`)!, s.opts));
   document.getElementById("citeBtn")?.addEventListener("click", openCite);
   document.getElementById("citeBtn2")?.addEventListener("click", openCite);
-  document.getElementById("shareBtn")?.addEventListener("click", () => shareOnX(`Nadi Demokrasi — Malaysia's democracy in numbers, ${F.year}–${L.year}: seven political-science indicators across ${ROWS.length} general elections.`, SITE));
+  const shareAll = () => shareOnX(`Nadi Demokrasi — Malaysia's democracy in numbers, ${F.year}–${L.year}: ${secs.length} political-science indicators across ${ROWS.length} general elections.`, SITE);
+  document.getElementById("shareBtn")?.addEventListener("click", shareAll);
+  document.getElementById("shareBtn2")?.addEventListener("click", shareAll);
   // per-section copy-link + X share
   app.querySelectorAll<HTMLElement>(".anchor").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault();

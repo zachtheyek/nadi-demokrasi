@@ -7,7 +7,8 @@ Always-on rules for any coding agent in this repo. Canonical detail lives in [RE
 **Nadi Demokrasi** — a single-page, reproducible data-essay measuring seven decades of Malaysian
 general elections with standard political-science indicators (Gallagher disproportionality,
 Samuels–Snyder malapportionment, the winner's seat bonus, winner's vote share, effective number of
-parties, Pedersen volatility, turnout). Vite + vanilla TS + plain CSS; **light theme**. Charts are
+parties, multi-cornered contests, Pedersen volatility, marginal-seat share, turnout, and women's
+representation — ten sections in narrative order). Vite + vanilla TS + plain CSS; **light theme**. Charts are
 hand-built inline SVG. Equations render via KaTeX. All data comes from **MECo** (the Malaysian
 Election Corpus by Thevesh Thevananthan, CC0) via the sibling [`meco-data`](https://github.com/zachtheyek/meco-data)
 foundation. Not affiliated with the author — **credit Thevesh on the page and in the README**.
@@ -66,21 +67,28 @@ citation year range/date; the meta counts.
 
 **Hand-written — verify each still holds under the new numbers:**
 
-1. **Indicator count & list.** "Here are **seven**", the hero `dek`'s indicator list, and the README
-   "seven indicators" table. Update only if a section is genuinely added or removed.
+1. **Indicator count & list.** The lede count ("Here are N") is templated from `secs.length`, but the
+   hero `dek`'s indicator list and the README "N indicators" table are hand-written — update them only
+   if a section is genuinely added or removed.
 2. **World-standard thresholds & claims** (paired with hard-coded `yRefs`):
    - Gallagher: "above about 12 is high by world standards; established proportional systems sit near
      2–5" ↔ `yRefs [{2–5},{12}]`.
    - Malapportionment: "most democracies ≤ 5%" ↔ `yRef {5}`, and **"above ~15% is among the most
      malapportioned in the democratic world"** — re-check the ~15% wording still fits the latest peak.
+   - Marginal: the **< 5 percentage-point** definition of "marginal" is a fixed convention (change only
+     deliberately).
+   - Women: **"~30% many democracies treat as a floor"** ↔ `yRef {30}`, and "half of the population" —
+     stable benchmarks; adjust only if a sentence reads wrong against the new value.
    These reflect the comparative-politics literature and rarely change; adjust wording only if the
-   new data makes a sentence read wrong (e.g. the metric falls below its stated band).
+   new data makes a sentence read wrong (e.g. the metric crosses a stated band).
 3. **Directional / trend claims** that assume the current trajectory — re-check the direction still
    holds: malapportionment "has not gone away"; fragmentation "until {year}… a fragmented result
-   closed the gap"; dominance "lost for good" + "from a dominant-party system to competitive,
-   coalition-by-coalition politics"; turnout "the most fiercely contested election of the BN era"
-   (tied to the peak year) and the "**despite** millions of newly-enrolled young voters" framing
-   (assumes turnout *fell*). If the newest election reverses a trend, reword to match.
+   closed the gap"; multi-cornered "a straight fight … then they splintered"; marginal "long dominated
+   by safe seats … has risen sharply"; dominance "lost for good" + "from a dominant-party system to
+   competitive, coalition-by-coalition politics"; turnout "the most fiercely contested election of the
+   BN era" (tied to the peak year) and the "**despite** millions of newly-enrolled young voters"
+   framing (assumes turnout *fell*); women "climbed … then eased" (assumes the recent dip). If the
+   newest election reverses a trend, reword to match.
 4. **Historical event references** — stable, almost never drift, but confirm they still read right
    next to the newest data: the 2008 "political tsunami" volatility note; "Reformasi"; "Undi18";
    "BN era"; "one-and-a-half-party system".

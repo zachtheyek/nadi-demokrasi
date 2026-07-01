@@ -31,15 +31,17 @@ header.hero { border-bottom: 1px solid var(--line); padding: 70px 0 40px; text-a
 
 section.ind { padding: 40px 0; border-top: 1px solid var(--line); }
 section.ind:first-of-type { border-top: 0; }
-.ind-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.ind-head { position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .ind h2 { font-family: "Space Grotesk", sans-serif; font-size: clamp(24px, 6vw, 33px); font-weight: 700; letter-spacing: -.01em; line-height: 1.1; }
 .ind .q { color: var(--accent2); font-style: italic; font-size: 17px; margin-top: 6px; }
+/* GitHub-style: a link anchor tucked in the left gutter, revealed on hover */
+.anchor { position: absolute; left: -1.35em; top: .12em; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 20px; line-height: 1; text-decoration: none; color: var(--muted); opacity: 0; transition: opacity .12s; }
+.ind:hover .anchor, .anchor:focus { opacity: .6; }
+.anchor:hover { opacity: 1; color: var(--accent); }
 .sectbar { display: flex; align-items: center; gap: 8px; flex: none; margin-top: 6px; }
-.anchor { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 15px; text-decoration: none; color: var(--line); width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid transparent; }
-.ind:hover .anchor { color: var(--muted); }
-.anchor:hover { color: var(--accent); border-color: var(--line); }
 .sharex { font-family: "Space Grotesk", sans-serif; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 10px; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .sharex:hover { border-color: var(--accent); color: var(--accent); }
+.xlogo { height: .9em; width: .9em; display: inline-block; vertical-align: -.1em; margin-left: 4px; }
 
 /* headline number + caption: caption vertically centered against the big number */
 .bignow { font-family: "Space Grotesk", sans-serif; display: flex; align-items: center; gap: 14px; margin: 18px 0 6px; flex-wrap: wrap; }

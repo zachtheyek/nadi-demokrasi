@@ -8,7 +8,7 @@ of political science.
 
 ![Nadi Demokrasi](https://zachtheyek.github.io/nadi-demokrasi/og-default.png)
 
-## The seven indicators
+## The ten indicators
 
 | Indicator | Formula | What it shows |
 |-----------|---------|---------------|
@@ -17,12 +17,16 @@ of political science.
 | **Winner's seat bonus** | seat% − vote% | FPTP's reward to the largest bloc (+27pp → −1pp) |
 | **Winner's vote share** | — | The end of the majority party (82% → 38%) |
 | **Effective N of parties** | N = 1/Σpᵢ² (Laakso–Taagepera) | Fragmentation (1.5 → 3.6) |
+| **Multi-cornered contests** | mean candidates / seat | Straight fights → crowded ballots (2.0 → 4.3; 96% now 3+-cornered) |
 | **Electoral volatility** | V = ½ Σ\|vᵢ,t − vᵢ,t₋₁\| (Pedersen) | The largest vote-share realignments (1959, 1990, 1999) |
+| **Marginal seats** | share won by < 5 pp | Competitiveness — how close the contests are (2% → 16–18%) |
 | **Turnout** | ballots / electors | Participation (69–84%) |
+| **Women in Parliament** | share of women MPs | Descriptive representation (1.9% → 13.1%, below the ~30% benchmark) |
 
 Disproportionality (the total vote-to-seat gap) is decomposed into its two sources:
 **malapportionment** (unequal districts) and the **winner's bonus** (the mechanical FPTP
-reward). The sections are ordered to read that way.
+reward). The sections then read in narrative order — the winner's grip and the party
+system, the crowding and closeness of contests, then participation and representation.
 
 Every number on the page (headline figures, chart points, the prose, the annotations,
 the citation) is **recomputed from the source data** at build time — nothing is
@@ -68,9 +72,14 @@ limitations**:
 - **Federal general elections only.** State elections, by-elections, and the timing
   differences for Sabah (joined 1963) and Sarawak (first federal vote 1969) are out of
   scope.
-- **Party-system, not seats or people.** No seat-level competitiveness/marginality measure,
-  and no descriptive representation (the corpus does carry candidate sex, ethnicity, and
-  seat margins) — natural further dimensions, listed on the page too.
+- **Marginal seats measure closeness, not two-way competitiveness.** A sub-5-point margin can be a
+  genuine cliffhanger *or* a multi-cornered split; the marginal-seat share does not distinguish them.
+- **Women's representation is descriptive, not substantive.** It counts who sits, not how they vote;
+  and it is the only representation dimension charted — candidate *ethnicity* (also in the corpus) is
+  a more contested measure and is deliberately left out.
+- **Still unbuilt.** A partisan-bias / efficiency-gap measure (the *direction* of the map's bias) and
+  a turnout-by-age breakdown (which needs the anonymised voter rolls, not this corpus) are the natural
+  next dimensions.
 
 ## Reproduce
 
