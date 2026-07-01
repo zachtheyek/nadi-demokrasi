@@ -69,7 +69,7 @@ limitations**:
   federal coalitions repeatedly; the rename-collapsing rule handles clean successions
   but not every partial realignment.
 - **Uncontested seats and the turnout denominator.** Early elections had many
-  uncontested seats; turnout uses *registered* electors, so pre-2018 figures overstate
+  uncontested seats; turnout uses *registered* electors, so pre-2021 figures overstate
   participation among all eligible adults (before automatic registration).
 - **Federal general elections only.** State elections, by-elections, and the timing
   differences for Sabah (joined 1963) and Sarawak (first federal vote 1969) are out of
