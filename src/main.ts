@@ -177,7 +177,7 @@ function sections(): Sec[] {
     /* 3 ─ the other source: unequal districts */
     "malapportionment": {
       body: `Every seat elects one MP, but seats hold wildly unequal numbers of voters — a rural seat can have a fraction of an urban one's electorate, so a rural vote counts for more. The Samuels–Snyder index gives the share of seats that would have to be reallocated to equalise voters per seat. Malaysia's has climbed to ${hl(num(mPeak.malapportionment ?? 0, 1) + "% in " + mPeak.year)}, from a low of ${hl(num(mLow.malapportionment ?? 0, 1) + "% in " + mLow.year)}. Anything above a few percent is high; ${hl("above ~15% is among the most malapportioned in the democratic world")}. This is a <em>structural</em> distortion, separate from <a href="#seat-bonus">the winner's bonus</a> — and unlike that bonus, it has not gone away.`,
-      note: `Malapportionment — unequal district sizes — is one of two ways boundaries can distort an election; the other is <em>gerrymandering</em>, drawing the shapes to pack or split a party's voters, which this index does not measure. Both are baked into where the lines are drawn, so they persist across changes of government — a large part of why <a href="#disproportionality">disproportionality</a> stayed high even as <a href="#seat-bonus">the winner's bonus</a> collapsed.`,
+      note: `Malapportionment — unequal district sizes — is one of two ways boundaries can distort an election; the other is <em>gerrymandering</em>, drawing the shapes to pack or split a party's voters, which this index does not measure — the next two sections take that up (<a href="#map-bias">who the map favours</a> and <a href="#compactness">district shapes</a>). Both are baked into where the lines are drawn, so they persist across changes of government — a large part of why <a href="#disproportionality">disproportionality</a> stayed high even as <a href="#seat-bonus">the winner's bonus</a> collapsed.`,
       method: {
         eq: String.raw`\mathrm{MAL} = \tfrac{1}{2} \textstyle\sum_i \left\lvert \dfrac{1}{n} - \dfrac{e_i}{E} \right\rvert`,
         where: `<strong>n</strong> is the number of seats, <strong>e<sub>i</sub></strong> the registered electors in seat <em>i</em>, and <strong>E</strong> the total electorate. Each seat carries an equal 1 / n of the seats but an unequal e<sub>i</sub> / E of the voters; the index sums those gaps and halves them — the fraction of seats "in the wrong place" under one-person-one-vote.`,
@@ -310,7 +310,7 @@ function render() {
   <header class="hero"><div class="wrap">
     <div class="kicker">Nadi Demokrasi · The Pulse of Democracy</div>
     <h1>Malaysia's democracy,<br>in numbers</h1>
-    <p class="dek">Seven decades of general elections measured with the standard tools of political science — disproportionality, malapportionment, gerrymandering, fragmentation, competitiveness, representation and turnout.</p>
+    <p class="dek">Seven decades of general elections measured with the standard tools of political science — disproportionality, malapportionment, gerrymandering, fragmentation, competitiveness, volatility, turnout, and representation.</p>
     <div class="meta">${ROWS.length} federal general elections · ${F.year}–${L.year} · reproducible &amp; citable</div>
     <div class="herobtns">
       <button class="btn" id="shareBtn">${X_ICON} Share</button>

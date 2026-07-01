@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: >-
+  If you use this work, please cite it as below — and please also credit the underlying data,
+  the Malaysian Election Corpus (MECo) by Thevesh Thevananthan.
+title: "Nadi Demokrasi: Malaysia's Democracy in Numbers"
+abstract: >-
+  A reproducible, citable single-page dashboard that measures seven decades of Malaysian federal
+  general elections (1955–2022) with fourteen standard political-science indicators —
+  disproportionality, malapportionment, map bias and district compactness (gerrymandering),
+  the winner's seat bonus, effective number of parties, multi-cornered contests, volatility,
+  seat turnover, marginal seats, turnout, and the descriptive representation of women and ethnic
+  communities. Every figure is computed from open data; nothing is hand-entered.
+type: software
+authors:
+  - family-names: Yek
+    given-names: Zach
+    orcid: "https://orcid.org/0000-0002-2532-4883"
+repository-code: "https://github.com/zachtheyek/nadi-demokrasi"
+url: "https://zachtheyek.github.io/nadi-demokrasi/"
+license: MIT
+keywords:
+  - Malaysia
+  - elections
+  - electoral systems
+  - political science
+  - malapportionment
+  - gerrymandering
+  - data visualization
+references:
+  - type: article
+    title: "The Malaysian Election Corpus"
+    authors:
+      - family-names: Thevananthan
+        given-names: Thevesh
+    journal: "Scientific Data"
+    volume: 13
+    start: 190
+    year: 2026
+    doi: "10.5281/zenodo.17694675"
+    url: "https://electiondata.my"
+    notes: "CC0. The underlying data for every figure in this project."

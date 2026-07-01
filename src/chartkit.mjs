@@ -8,7 +8,10 @@
 // Nothing here is hard-coded that can be computed — buildSpecs() derives every figure, callout and
 // annotation from the rows, exactly as the page does, so the cards self-update with the data.
 
-export const C = { red: "#b3402f", teal: "#2f6f6b", gold: "#c08a2d", slate: "#4f6d7a", ink: "#16130f", muted: "#6b6256", paper: "#fbfaf6", frame: "#cfc7b6" };
+export const C = { red: "#b3402f", teal: "#2f6f6b", gold: "#c08a2d", slate: "#4f6d7a", ink: "#16130f", muted: "#6b6256", paper: "#fbfaf6", frame: "#cfc7b6",
+  // a brighter teal for small highlighted text — the muted line teal is too close to the grey
+  // callout colour at label sizes (and the OG renderer ignores tspan bolding, so colour must carry it)
+  tealHi: "#1f877c" };
 
 export const num = (v, d = 0) => Number(v).toFixed(d);
 export const yy = (year) => "'" + String(year).slice(2);
@@ -96,7 +99,7 @@ export function buildSpecs(rows) {
         yLabel: "Winner's seat share vs vote share", fmt: (v) => num(v) + "%", yMin: 0, yMax: 100,
         gapFill: true, gap: { year: d.bPeak.year, label: "+" + num(d.bPeak.winner_seat_bonus, 1) + " pp bonus" },
         // the "won on 46%" vote figure lives on the teal line, so tint it teal
-        points: d.minorityWins.map((r) => ({ year: r.year, value: r.winner_seat_pc, tag: "won on " + num(r.winner_vote_pc) + "%", place: (r.winner_seat_pc > 61 ? "below" : "above"), hi: num(r.winner_vote_pc) + "%", hiColor: C.teal })),
+        points: d.minorityWins.map((r) => ({ year: r.year, value: r.winner_seat_pc, tag: "won on " + num(r.winner_vote_pc) + "%", place: (r.winner_seat_pc > 61 ? "below" : "above"), hi: num(r.winner_vote_pc) + "%", hiColor: C.tealHi })),
       },
     },
     {
@@ -121,9 +124,12 @@ export function buildSpecs(rows) {
       opts: {
         series: [{ label: "Map bias", color: C.red, focal: true, y: (r) => r.map_bias }],
         yLabel: "Winner's seat-size advantage", fmt: (v) => (v >= 0 ? "+" : "−") + num(Math.abs(v), 0) + "%",
+        // generous head/foot room so the peak callout sits clear ABOVE the peak and the latest
+        // callout clear BELOW the trough, instead of colliding with the steep line
+        yMax: Math.ceil(d.mbPeak.map_bias ?? 0) + 10, yMin: Math.floor(d.mbLow.map_bias ?? 0) - 12,
         yRefs: [{ at: 0, label: "no tilt" }],
         points: [
-          { year: d.mbPeak.year, value: d.mbPeak.map_bias, tag: "peak tilt to winner" },
+          { year: d.mbPeak.year, value: d.mbPeak.map_bias, tag: "peak tilt to winner", place: "above" },
           { year: d.L.year, value: d.L.map_bias, tag: "now", place: "below" },
         ],
       },
@@ -392,9 +398,9 @@ export function chartSVG(rows, o, W, H) {
     const tag = p.tag ? `${yy(p.year)} (${p.tag})` : yy(p.year);
     const w = Math.max(o.fmt(p.value).length * 6.4, tag.length * 5.7);
     const drawDot = () => `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${s.color}"/>`;
-    // the tag is muted, but an optional substring (p.hi) can be tinted — e.g. a vote % that lives
-    // on the other (teal) line gets that line's colour
-    const tagInner = p.hi ? esc(tag).replace(esc(p.hi), `<tspan fill="${p.hiColor || C.teal}">${esc(p.hi)}</tspan>`) : esc(tag);
+    // the tag is muted, but an optional substring (p.hi) can be tinted + bolded — e.g. a vote % that
+    // lives on the other (teal) line gets that line's colour, and bold so it reads at small sizes
+    const tagInner = p.hi ? esc(tag).replace(esc(p.hi), `<tspan fill="${p.hiColor || C.teal}" font-weight="700">${esc(p.hi)}</tspan>`) : esc(tag);
     const drawText = (tx, vY, sY, anchor) =>
       txt(tx, vY, anchor, `fill="${s.color}" font-size="12.5" font-weight="700"`, o.fmt(p.value)) +
       `<text x="${tx.toFixed(1)}" y="${sY.toFixed(1)}" text-anchor="${anchor}" ${FF} fill="${C.muted}" font-size="10.5">${tagInner}</text>`;
