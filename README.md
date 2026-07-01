@@ -8,20 +8,22 @@ of political science.
 
 ![Nadi Demokrasi](https://zachtheyek.github.io/nadi-demokrasi/og-default.png)
 
-## The ten indicators
+## The twelve indicators
 
 | Indicator | Formula | What it shows |
 |-----------|---------|---------------|
 | **Disproportionality** | Gallagher LSq = √(½ Σ(vᵢ−sᵢ)²) | How faithfully votes become seats (peaked 24.0 in 2004) |
-| **Malapportionment** | MAL = ½ Σ\|1/n − eᵢ/E\| (Samuels–Snyder) | Unequal voters per seat — the *structural* distortion (8% → 18%, a record) |
 | **Winner's seat bonus** | seat% − vote% | FPTP's reward to the largest bloc (+27pp → −1pp) |
+| **Malapportionment** | MAL = ½ Σ\|1/n − eᵢ/E\| (Samuels–Snyder) | Unequal voters per seat — the *structural* distortion (8% → 18%, a record) |
 | **Winner's vote share** | — | The end of the majority party (82% → 38%) |
 | **Effective N of parties** | N = 1/Σpᵢ² (Laakso–Taagepera) | Fragmentation (1.5 → 3.6) |
 | **Multi-cornered contests** | mean candidates / seat | Straight fights → crowded ballots (2.0 → 4.3; 96% now 3+-cornered) |
 | **Electoral volatility** | V = ½ Σ\|vᵢ,t − vᵢ,t₋₁\| (Pedersen) | The largest vote-share realignments (1959, 1990, 1999) |
+| **Seat turnover** | share of seats that flip (via lineage) | Seats changing hands — 53% in 2022, 39% in 2008 |
 | **Marginal seats** | share won by < 5 pp | Competitiveness — how close the contests are (2% → 16–18%) |
 | **Turnout** | ballots / electors | Participation (69–84%) |
 | **Women in Parliament** | share of women MPs | Descriptive representation (1.9% → 13.1%, below the ~30% benchmark) |
+| **Ethnic makeup** | share of MPs by ethnicity | Who sits — ethnic-Chinese MPs 29% → 20% (descriptive) |
 
 Disproportionality (the total vote-to-seat gap) is decomposed into its two sources:
 **malapportionment** (unequal districts) and the **winner's bonus** (the mechanical FPTP
@@ -74,12 +76,16 @@ limitations**:
   scope.
 - **Marginal seats measure closeness, not two-way competitiveness.** A sub-5-point margin can be a
   genuine cliffhanger *or* a multi-cornered split; the marginal-seat share does not distinguish them.
-- **Women's representation is descriptive, not substantive.** It counts who sits, not how they vote;
-  and it is the only representation dimension charted — candidate *ethnicity* (also in the corpus) is
-  a more contested measure and is deliberately left out.
-- **Still unbuilt.** A partisan-bias / efficiency-gap measure (the *direction* of the map's bias) and
-  a turnout-by-age breakdown (which needs the anonymised voter rolls, not this corpus) are the natural
-  next dimensions.
+- **Representation is descriptive, not substantive.** Women's and ethnic makeup count *who sits*, not
+  how they vote or whom they serve; ethnic makeup also reflects the electorate's own composition and
+  electoral geography, not a verdict on any community.
+- **Seat turnover is threaded, not exact.** Seats are matched across delimitations to their dominant
+  boundary ancestor, so the flip count is approximate in redelineation years.
+- **Efficiency gap / partisan bias not shown.** The measures that answer "which side does the map
+  favour?" are defined for *two-party* systems; in Malaysia's multi-bloc, multi-cornered contests
+  there is no clean two-side wasted-vote split or 50/50 counterfactual, so they aren't sound as a
+  single number here. **Turnout by age** needs the individual voter rolls (not this corpus) — see
+  [Undi Generasi](https://zachtheyek.github.io/undi-generasi/).
 
 ## Reproduce
 

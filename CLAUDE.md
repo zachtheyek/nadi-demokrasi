@@ -7,8 +7,9 @@ Always-on rules for any coding agent in this repo. Canonical detail lives in [RE
 **Nadi Demokrasi** — a single-page, reproducible data-essay measuring seven decades of Malaysian
 general elections with standard political-science indicators (Gallagher disproportionality,
 Samuels–Snyder malapportionment, the winner's seat bonus, winner's vote share, effective number of
-parties, multi-cornered contests, Pedersen volatility, marginal-seat share, turnout, and women's
-representation — ten sections in narrative order). Vite + vanilla TS + plain CSS; **light theme**. Charts are
+parties, multi-cornered contests, Pedersen volatility, seat turnover, marginal-seat share, turnout,
+women's representation, and ethnic makeup — twelve sections in narrative order). Vite + vanilla TS +
+plain CSS; **light theme**. Charts are
 hand-built inline SVG. Equations render via KaTeX. All data comes from **MECo** (the Malaysian
 Election Corpus by Thevesh Thevananthan, CC0) via the sibling [`meco-data`](https://github.com/zachtheyek/meco-data)
 foundation. Not affiliated with the author — **credit Thevesh on the page and in the README**.
