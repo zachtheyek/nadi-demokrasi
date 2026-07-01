@@ -1,6 +1,9 @@
 # CLAUDE.md
 
 Always-on rules for any coding agent in this repo. Canonical detail lives in [README.md](README.md).
+**Picking up this project? Read [docs/CONTEXT.md](docs/CONTEXT.md) first** — the full maintainer
+context (design contract, every indicator, the chart engine, the self-update/drift + share-card
+pipelines, decisions & rationale, gotchas, and open work).
 
 ## Project
 
