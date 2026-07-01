@@ -238,17 +238,32 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
     g += drawText(tx, vY, sY, anchor);
   });
 
-  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${o.yLabel}">${g}</svg>`;
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${o.yLabel}">${g}<g class="hoverdots"></g></svg>`;
+  const hg = host.querySelector(".hoverdots")!;
+  // hovering any point highlights ALL series at that year (a dot on each) and shows one unified card
+  const showAt = (year: number, cx: number, cy: number) => {
+    const row = at(year); if (!row) return;
+    let dots = "", items = "";
+    o.series.forEach((s) => {
+      const v = s.y(row); if (v == null) return;
+      dots += `<circle class="hoverdot" cx="${x(year).toFixed(1)}" cy="${y(v).toFixed(1)}" r="5" fill="${s.color}"/>`;
+      const lab = o.series.length > 1 ? `${year} ${s.label}` : `${year}`;
+      items += `<div class="ttitem"><div class="ttlab">${lab}</div><div class="ttv" style="color:${s.color}">${o.fmt(v)}${o.unit || ""}</div></div>`;
+    });
+    hg.innerHTML = dots;
+    showTip(`${items}<div class="ttwin">won by ${row.winner}</div>`, cx, cy);
+  };
+  const clear = () => { hg.innerHTML = ""; hideTip(); };
   host.querySelectorAll(".dot").forEach((d) => {
     const el = d as SVGElement;
     const move = (ev: any) => {
       const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
       const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-      showTip(`<div class="y">${el.dataset.y} · ${el.dataset.l}</div>${o.fmt(+el.dataset.v!)}${o.unit || ""}<br><span style="color:#bbb">won by ${el.dataset.w}</span>`, cx, cy);
+      showAt(+el.dataset.y!, cx, cy);
     };
     el.addEventListener("mouseenter", move);
     el.addEventListener("mousemove", move);
-    el.addEventListener("mouseleave", hideTip);
+    el.addEventListener("mouseleave", clear);
     el.addEventListener("touchstart", move, { passive: true });
   });
 }

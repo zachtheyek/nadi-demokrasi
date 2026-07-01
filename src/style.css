@@ -77,8 +77,12 @@ section.ind:first-of-type { border-top: 0; }
 .where strong { color: var(--accent); font-weight: 700; }
 .where em { font-style: italic; }
 
-.tooltip { position: fixed; pointer-events: none; background: var(--ink); color: #fff; font-family: "Space Grotesk", sans-serif; font-size: 12.5px; padding: 7px 10px; border-radius: 8px; z-index: 50; opacity: 0; transition: opacity .1s; max-width: 220px; }
-.tooltip .y { color: var(--gold); font-weight: 700; }
+.tooltip { position: fixed; pointer-events: none; background: var(--ink); color: #fff; font-family: "Space Grotesk", sans-serif; font-size: 12.5px; padding: 8px 11px; border-radius: 8px; z-index: 50; opacity: 0; transition: opacity .1s; max-width: 220px; }
+.tooltip .ttitem { margin-bottom: 5px; }
+.tooltip .ttlab { color: #b9b3a8; font-size: 11px; line-height: 1.2; }
+.tooltip .ttv { font-weight: 700; font-size: 15px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.tooltip .ttwin { color: var(--gold); font-size: 11px; margin-top: 1px; }
+.hoverdot { stroke: #fff; stroke-width: 1.5; pointer-events: none; }
 
 /* bottom method & limitations section */
 .method-sec { border-top: 2px solid var(--ink); margin-top: 30px; padding: 34px 0 10px; }
