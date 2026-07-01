@@ -256,7 +256,7 @@ function sections(): Sec[] {
   const minExemplar = (clearMin.length ? clearMin : minorityWins).slice(-1)[0];
   // derived seat-bonus wording (so it stays true when the latest election changes)
   const bNow = L.winner_seat_bonus;
-  const bonusCap = bNow < -0.5 ? "the winner now takes a smaller share of seats than of votes."
+  const bonusCap = bNow < -0.5 ? "the winner now takes a smaller share of seats than of votes, a reversal from years past."
     : Math.abs(bNow) <= 2 ? "the bonus has all but vanished." : bNow > 0 ? "the winner still gains from the system." : "the bonus has vanished.";
   const firstNeg = ROWS.filter((r) => r.winner_seat_bonus < 0)[0];
   const isFirstNeg = !!firstNeg && firstNeg.year === L.year;
@@ -293,7 +293,7 @@ function sections(): Sec[] {
     {
       id: "disproportionality", h2: "Disproportionality", q: "How faithfully do votes turn into seats?",
       now: num(L.gallagher, 1),
-      nowCap: `Gallagher index in ${L.year} — down from a peak of ${num(gPeak.gallagher, 1)} in ${gPeak.year}.`,
+      nowCap: `the gap between how Malaysians voted and the seats they got in ${L.year} — near its narrowest ever, down from a peak of ${num(gPeak.gallagher, 1)} in ${gPeak.year}.`,
       share: `Malaysia's vote-to-seat disproportionality (Gallagher) peaked at ${num(gPeak.gallagher, 1)} in ${gPeak.year} and has fallen to ${num(L.gallagher, 1)} by ${L.year}.`,
       opts: {
         series: [{ label: "Gallagher", color: C.red, focal: true, y: (r) => r.gallagher }],
@@ -301,33 +301,14 @@ function sections(): Sec[] {
         yRefs: [{ at: 2, to: 5, label: "typical PR system" }, { at: 12, label: "high by world standards" }],
         points: [{ year: gPeak.year, value: gPeak.gallagher, tag: "peak" }, { year: L.year, value: L.gallagher, tag: "now", place: "below" }],
       },
-      body: `For half a century, Malaysia's first-past-the-post system turned modest vote leads into commanding majorities. Disproportionality peaked at ${hl(num(gPeak.gallagher, 1) + " in " + gPeak.year)}, when the winning bloc (${gPeak.winner}) converted ${hl(num(gPeak.winner_vote_pc) + "%")} of the vote into ${hl(num(gPeak.winner_seat_pc) + "%")} of seats. By ${L.year} it had fallen to ${hlt(num(L.gallagher, 1))}. A score above about 12 is high by world standards; established proportional systems sit near 2–5.`,
-      note: `This is the <em>total</em> gap between votes and seats. It has two sources — an electoral system that rewards the largest bloc (see <a href="#seat-bonus">the winner's bonus</a>) and seats drawn to hold very different numbers of voters (<a href="#malapportionment">malapportionment</a>). The next two sections measure each in turn.`,
+      body: `The Gallagher index — a single measure of how far a parliament's seats stray from the votes cast — peaked at ${hl(num(gPeak.gallagher, 1) + " in " + gPeak.year)}, when the winning bloc (${gPeak.winner}) turned ${hlt(num(gPeak.winner_vote_pc) + "%")} of the vote into ${hlt(num(gPeak.winner_seat_pc) + "%")} of seats. By ${L.year} it had fallen to ${hl(num(L.gallagher, 1))} — the closest Malaysia's seats have come to matching its votes. A score above about 12 is high by world standards; established proportional systems sit near 2–5.`,
+      note: `This is the <em>total</em> gap between votes and seats. It has two sources — an electoral system that rewards the largest bloc (see <a href="#seat-bonus">the winner's bonus</a>) and electoral districts drawn to hold very different numbers of voters, so a vote in one seat can weigh far more than a vote in another (<a href="#malapportionment">malapportionment</a>). The next two sections measure each in turn.`,
       method: {
         eq: String.raw`\mathrm{LSq} = \sqrt{\tfrac{1}{2} \textstyle\sum_i (v_i - s_i)^2}`,
         where: `<strong>v<sub>i</sub></strong> and <strong>s<sub>i</sub></strong> are bloc <em>i</em>'s share of the valid vote and of seats, in percentage points. A perfectly proportional result — every bloc's seat share equal to its vote share — scores 0; the bigger the score, the larger the gap between votes cast and seats won.`,
       },
     },
-    /* 2 ─ one source: unequal districts */
-    {
-      id: "malapportionment", h2: "Malapportionment", q: "Is every vote worth the same?",
-      now: num(L.malapportionment ?? 0, 1) + "%",
-      nowCap: `of seats are mis-allocated relative to one-person-one-vote in ${L.year} — a record, and extreme by world standards.`,
-      share: `${num(L.malapportionment ?? 0, 1)}% of Malaysia's parliamentary seats are mis-allocated relative to one-person-one-vote (${L.year}) — among the most malapportioned democracies in the world.`,
-      opts: {
-        series: [{ label: "MAL", color: C.red, focal: true, y: (r) => r.malapportionment }],
-        yLabel: "Malapportionment index", fmt: (v) => num(v, 1) + "%", yMin: 0,
-        yRefs: [{ at: 5, label: "most democracies ≤ 5%" }],
-        points: [{ year: mLow.year, value: mLow.malapportionment ?? 0, tag: "lowest", place: "below" }, { year: mPeak.year, value: mPeak.malapportionment ?? 0, tag: "peak" }],
-      },
-      body: `Every seat elects one MP, but seats hold wildly unequal numbers of voters — a rural seat can have a fraction of an urban one's electorate, so a rural vote counts for more. The Samuels–Snyder index gives the share of seats that would have to be reallocated to equalise voters per seat. Malaysia's has climbed to ${hl(num(mPeak.malapportionment ?? 0, 1) + "% in " + mPeak.year)}, from a low of ${hlt(num(mLow.malapportionment ?? 0, 1) + "% in " + mLow.year)}. Anything above a few percent is high; ${hl("above ~15% is among the most malapportioned in the democratic world")}. This is a <em>structural</em> distortion, separate from the winner's bonus — and unlike that bonus, it has not gone away.`,
-      note: `Malapportionment is baked into where the lines are drawn, so it persists across changes of government. It is a large part of why <a href="#disproportionality">disproportionality</a> stayed high even as the winner's bonus collapsed.`,
-      method: {
-        eq: String.raw`\mathrm{MAL} = \tfrac{1}{2} \textstyle\sum_i \left\lvert \dfrac{1}{n} - \dfrac{e_i}{E} \right\rvert`,
-        where: `<strong>n</strong> is the number of seats, <strong>e<sub>i</sub></strong> the registered electors in seat <em>i</em>, and <strong>E</strong> the total electorate. Each seat carries an equal 1⁄n of the seats but an unequal e<sub>i</sub>⁄E of the voters; the index sums those gaps and halves them — the fraction of seats "in the wrong place" under one-person-one-vote.`,
-      },
-    },
-    /* 3 ─ the other source: the winner's mechanical reward */
+    /* 2 ─ one source: the winner's mechanical reward */
     {
       id: "seat-bonus", h2: "The winner's bonus", q: "How much does the system inflate the largest bloc?",
       now: (L.winner_seat_bonus >= 0 ? "+" : "") + num(L.winner_seat_bonus, 1),
@@ -340,13 +321,31 @@ function sections(): Sec[] {
         ],
         yLabel: "Winner's seat share vs vote share", fmt: (v) => num(v) + "%", yMin: 0, yMax: 100,
         gapFill: true, gap: { year: bPeak.year, label: "+" + num(bPeak.winner_seat_bonus, 1) + "pp bonus" },
-        yRefs: [{ at: 50, label: "majority" }],
-        points: minExemplar ? [{ year: minExemplar.year, value: minExemplar.winner_seat_pc, tag: "won on " + num(minExemplar.winner_vote_pc) + "%", place: "above" }] : [],
+        points: minorityWins.map((r) => ({ year: r.year, value: r.winner_seat_pc, tag: "won on " + num(r.winner_vote_pc) + "%", place: "above" as const })),
       },
-      body: `The gap between the winner's seats (red) and votes (teal) is the bonus first-past-the-post hands the largest bloc. It peaked at ${hl("+" + num(bPeak.winner_seat_bonus, 1) + " points in " + bPeak.year)}, when ${bPeak.winner} turned ${num(bPeak.winner_vote_pc)}% of votes into ${num(bPeak.winner_seat_pc)}% of seats.${minRecent ? ` On ${minorityWins.length === 1 ? "one occasion" : minorityWins.length + " occasions"} the largest bloc even won a majority of seats on a ${hlt("minority of the vote")} — most recently in ${minRecent}.` : ""} By ${hl(String(L.year))} ${bNow < -0.5 ? `it had vanished (${hl(num(bNow, 1))})` : Math.abs(bNow) <= 2 ? `it had all but vanished (${hl(num(bNow, 1))})` : `it stood at ${hl(num(bNow, 1))}`}${isFirstNeg ? `: for the first time, the largest bloc held a smaller share of seats than of votes` : ""}${hung ? `, in a hung parliament` : ""}.`,
+      body: `The gap between the winner's seats (red) and votes (teal) is the bonus first-past-the-post hands the largest bloc. It peaked at ${hlt("+" + num(bPeak.winner_seat_bonus, 1) + " points in " + bPeak.year)}, when ${bPeak.winner} turned ${hlt(num(bPeak.winner_vote_pc) + "%")} of votes into ${hl(num(bPeak.winner_seat_pc) + "%")} of seats.${minRecent ? ` On ${minorityWins.length === 1 ? "one occasion" : minorityWins.length + " occasions"} the largest bloc even won a majority of seats on a ${hlt("minority of the vote")} — most recently in ${minRecent}.` : ""} By ${L.year}, ${bNow < -0.5 ? `the gap has vanished (${hlt(num(bNow, 1))})` : Math.abs(bNow) <= 2 ? `the gap has all but vanished (${hlt(num(bNow, 1))})` : `the gap stands at ${hlt(num(bNow, 1))}`}${isFirstNeg ? `: for the first time, the largest bloc held a smaller share of seats than of votes` : ""}${hung ? `, in a hung parliament` : ""}.`,
       method: {
         eq: String.raw`B = s_w - v_w`,
         where: `<strong>s<sub>w</sub></strong> and <strong>v<sub>w</sub></strong> are the winning bloc's share of seats and of the valid vote (%). A positive <em>B</em> means the system magnified the leader into a bigger parliamentary presence than its votes alone would justify; a negative <em>B</em> means it under-rewarded them.`,
+      },
+    },
+    /* 3 ─ the other source: unequal districts */
+    {
+      id: "malapportionment", h2: "Malapportionment", q: "Is every vote worth the same?",
+      now: num(L.malapportionment ?? 0, 1) + "%",
+      nowCap: `of seats are mis-allocated relative to one-person-one-vote in ${L.year} — a record, and extreme by world standards.`,
+      share: `${num(L.malapportionment ?? 0, 1)}% of Malaysia's parliamentary seats are mis-allocated relative to one-person-one-vote (${L.year}) — among the most malapportioned democracies in the world.`,
+      opts: {
+        series: [{ label: "MAL", color: C.red, focal: true, y: (r) => r.malapportionment }],
+        yLabel: "Malapportionment index", fmt: (v) => num(v, 1) + "%", yMin: 0,
+        yRefs: [{ at: 0, to: 5, label: "most democracies ≤ 5%" }, { at: 15, label: "among the most malapportioned" }],
+        points: [{ year: mLow.year, value: mLow.malapportionment ?? 0, tag: "lowest", place: "below" }, { year: mPeak.year, value: mPeak.malapportionment ?? 0, tag: "peak" }],
+      },
+      body: `Every seat elects one MP, but seats hold wildly unequal numbers of voters — a rural seat can have a fraction of an urban one's electorate, so a rural vote counts for more. The Samuels–Snyder index gives the share of seats that would have to be reallocated to equalise voters per seat. Malaysia's has climbed to ${hl(num(mPeak.malapportionment ?? 0, 1) + "% in " + mPeak.year)}, from a low of ${hl(num(mLow.malapportionment ?? 0, 1) + "% in " + mLow.year)}. Anything above a few percent is high; ${hl("above ~15% is among the most malapportioned in the democratic world")}. This is a <em>structural</em> distortion, separate from <a href="#seat-bonus">the winner's bonus</a> — and unlike that bonus, it has not gone away.`,
+      note: `Malapportionment — unequal district sizes — is one of two ways boundaries can distort an election; the other is <em>gerrymandering</em>, drawing the shapes to pack or split a party's voters, which this index does not measure. Both are baked into where the lines are drawn, so they persist across changes of government — a large part of why <a href="#disproportionality">disproportionality</a> stayed high even as <a href="#seat-bonus">the winner's bonus</a> collapsed.`,
+      method: {
+        eq: String.raw`\mathrm{MAL} = \tfrac{1}{2} \textstyle\sum_i \left\lvert \dfrac{1}{n} - \dfrac{e_i}{E} \right\rvert`,
+        where: `<strong>n</strong> is the number of seats, <strong>e<sub>i</sub></strong> the registered electors in seat <em>i</em>, and <strong>E</strong> the total electorate. Each seat carries an equal 1 / n of the seats but an unequal e<sub>i</sub> / E of the voters; the index sums those gaps and halves them — the fraction of seats "in the wrong place" under one-person-one-vote.`,
       },
     },
     /* 4 ─ the winner's grip, over time */
@@ -358,16 +357,16 @@ function sections(): Sec[] {
       opts: {
         series: [{ label: "Winner %", color: C.red, focal: true, y: (r) => r.winner_vote_pc }],
         yLabel: "Winner's vote share", fmt: (v) => num(v) + "%", yMin: 0, yMax: 90,
-        yRefs: [{ at: 50, label: "majority of the vote" }],
+        yRefs: [{ at: 50, label: "majority" }, { at: 200 / 3, label: "supermajority" }],
         points: [
           { year: F.year, value: F.winner_vote_pc, tag: "high", place: "right" as const },
-          ...(belowHalf ? [{ year: belowHalf.year, value: belowHalf.winner_vote_pc, tag: "fell below half", place: "below" as const }] : []),
+          ...(belowHalf ? [{ year: belowHalf.year, value: belowHalf.winner_vote_pc, tag: "fell below half for the first time", place: "below" as const }] : []),
           { year: L.year, value: L.winner_vote_pc, tag: "low", place: "below" as const },
         ],
       },
       body: `The winning coalition's share of the popular vote has fallen from ${hl(num(F.winner_vote_pc) + "% in " + F.year)} to ${hl(num(L.winner_vote_pc) + "% in " + L.year)} — the lowest in our history.${twoThirdsYr ? ` The two-thirds parliamentary supermajority, long the benchmark of dominance, was lost for good in ${hlt(String(twoThirdsYr))}.` : ""} Malaysia has moved decisively from a dominant-party system to competitive, coalition-by-coalition politics.`,
       method: {
-        text: `The "winner" is the bloc that took the most seats; this line is its share of all valid federal votes cast that year. It is a level, not a formula — read it alongside fragmentation below: a falling winner's share and a rising effective number of parties are two views of the same shift to multi-bloc competition.`,
+        text: `The "winner" is the bloc that took the most seats; the line is its share of all valid federal votes cast that year. Read it alongside <a href="#fragmentation">fragmentation</a> below: a falling winner's share and a rising effective number of parties are two views of the same shift to multi-bloc competition.`,
       },
     },
     /* 5 ─ how many blocs matter */
@@ -381,13 +380,13 @@ function sections(): Sec[] {
           { label: "By seats", color: C.red, focal: true, y: (r) => r.enp_seats },
           { label: "By votes", color: C.gold, y: (r) => r.enp_votes },
         ],
-        yLabel: "Effective number of parties", fmt: (v) => num(v, 1), yMin: 1,
+        yLabel: "Effective number of parties", fmt: (v) => num(v, 1), yMin: 0.8,
         points: [{ year: enpLow.year, value: enpLow.enp_seats, tag: "one-party low", place: "below" }, { year: enpPeak.year, value: enpPeak.enp_seats, tag: "record" }],
       },
-      body: `The effective number of parties weights each bloc by its size, so a few dominant blocs count for less than many even ones. Malaysia spent decades as a ${hlt("one-and-a-half-party system")} — about ${num(F.enp_votes, 1)} effective parties by votes in ${F.year}, bottoming at ${num(enpLow.enp_seats, 1)} in parliament in ${enpLow.year}. It has since climbed to ${hl(num(enpPeak.enp_seats, 1) + " by " + enpPeak.year)}, a genuine multi-way contest between its three biggest blocs — ${big3.map((b) => hlt(b.label)).join(", ").replace(/, ([^,]*)$/, " and $1")}. For decades the seats line sat below the votes line — first-past-the-post squeezing smaller blocs out of parliament — until ${enpPeak.year}, when a fragmented result closed the gap.`,
+      body: `The effective number of parties weights each bloc by its size, so a few dominant blocs count for less than many even ones. Malaysia spent decades as a ${hlt("one-and-a-half-party system")} — about ${hlg(num(F.enp_votes, 1))} effective parties by votes in ${hlg(String(F.year))}, bottoming at ${hl(num(enpLow.enp_seats, 1))} in parliament in ${hl(String(enpLow.year))}. It has since climbed to ${hl(num(enpPeak.enp_seats, 1) + " by " + enpPeak.year)}, a genuine multi-way contest between its three biggest blocs — ${big3.map((b) => hlt(b.label)).join(", ").replace(/, ([^,]*)$/, " and $1")}. For decades the seats line sat below the votes line — first-past-the-post squeezing smaller blocs out of parliament — until ${enpPeak.year}, when a fragmented result closed the gap.`,
       method: {
         eq: String.raw`N = \dfrac{1}{\sum_i p_i^{\,2}}`,
-        where: `<strong>p<sub>i</sub></strong> is bloc <em>i</em>'s share — of votes for the votes line, of seats for the seats line. Two equally-sized blocs give N = 2; one dominant bloc pulls N toward 1. It is the Laakso–Taagepera index, the standard count of "parties that matter".`,
+        where: `<strong>p<sub>i</sub></strong> is bloc <em>i</em>'s share — of votes for the votes line, of seats for the seats line. Two equally-sized blocs give N = 2; one dominant bloc pulls N toward 1. It is the Laakso–Taagepera index, a standard count of "parties that matter".`,
       },
     },
     /* 6 ─ how many contenders per seat */
@@ -401,16 +400,17 @@ function sections(): Sec[] {
         yLabel: "Candidates per seat", fmt: (v) => num(v, 1), yMin: 2,
         points: [{ year: candLow.year, value: candLow.cand_per_seat, tag: "fewest", place: "below" }, { year: candPeak.year, value: candPeak.cand_per_seat, tag: "peak" }],
       },
-      body: `For most of Malaysia's history a seat was a straight fight — about ${num(F.cand_per_seat, 1)} candidates on the ballot. As the two-coalition system hardened, contests narrowed to a low of ${hlt(num(candLow.cand_per_seat, 1) + " in " + candLow.year)}. Then they splintered: by ${L.year} the average seat drew ${hl(num(L.cand_per_seat, 1) + " candidates")}, and ${hl(num(L.three_plus_pc) + "% were three-cornered or more")}. Multi-cornered fights are how a bloc can win a seat on a minority of the vote — much of the machinery behind the disproportionality above.`,
+      body: `For most of Malaysia's history a seat was a straight fight — about ${hl(num(F.cand_per_seat, 1))} candidates on the ballot. As the two-coalition system hardened, contests narrowed to a low of ${hl(num(candLow.cand_per_seat, 1) + " in " + candLow.year)}. Then they splintered: by ${L.year} the average seat drew ${hl(num(L.cand_per_seat, 1) + " candidates")}, and ${hlt(num(L.three_plus_pc) + "% were three-cornered or more")}. Multi-cornered fights are how a bloc can win a seat on a minority of the vote — much of the machinery behind the <a href="#disproportionality">disproportionality</a> above.`,
       method: {
-        text: `The mean number of candidates contesting each federal seat. Read it with fragmentation: more blocs mean more names on the ballot and more three-way splits — which, under first-past-the-post, let winners take seats with well under half the vote.`,
+        eq: String.raw`\bar{c} = \dfrac{1}{n} \textstyle\sum_i c_i`,
+        where: `<strong>c<sub>i</sub></strong> is the number of candidates contesting seat <em>i</em> and <strong>n</strong> the number of seats — so the figure is simply the <em>mean</em> candidates per seat. Read it with <a href="#fragmentation">fragmentation</a>: more blocs mean more names on the ballot and more three-way splits, which under first-past-the-post let winners take seats with well under half the vote.`,
       },
     },
     /* 7 ─ how much the vote moves */
     {
       id: "volatility", h2: "Volatility", q: "How much does the vote move between elections?",
       now: num(L.volatility ?? 0),
-      nowCap: `Pedersen volatility in ${L.year} — among the largest vote swings on record.`,
+      nowCap: `how much the vote shifted between blocs from the previous election, in ${L.year} — one of the largest realignments on record.`,
       share: `Malaysia's biggest electoral realignments by vote-share (Pedersen volatility): ${volTop.map((r) => r.year).sort((a, b) => a - b).join(", ")}${L.volatility === volTop[0].volatility ? "" : `, with ${L.year} among them`}.`,
       opts: {
         series: [{ label: "Pedersen", color: C.teal, focal: true, y: (r) => r.volatility }],
@@ -422,28 +422,29 @@ function sections(): Sec[] {
           ...volDips.slice().sort((a, b) => a.year - b.year).map((r, i) => ({ year: r.year, value: r.volatility!, tag: "low", place: (i === 0 ? "left" : "right") as const })),
         ],
       },
-      body: `Pedersen volatility sums how much each bloc's vote share shifts from one election to the next. The largest realignments by this measure came in ${hl(volTop.map((r) => r.year).sort((a, b) => a - b).join(", "))} — each a wholesale redrawing of who voted for whom. The calm stretches between, such as the ${hlt(decadePhrase(domCalm.year))}, mark periods of entrenched one-coalition dominance.`,
-      note: r2008 ? `A caution on reading this chart: the ${r2008.year} "political tsunami" — when the ruling coalition lost its two-thirds majority — barely registers here (${num(r2008.volatility ?? 0)}). That shock was about <em>seats</em>, not vote share: BN still won ${num(r2008.winner_vote_pc)}% of the vote, so relatively little support actually moved between blocs. Vote volatility and seat change can tell very different stories.` : undefined,
+      body: `Pedersen volatility sums how much each bloc's vote share shifts from one election to the next. The largest realignments by this measure came in ${hlt(volTop.map((r) => r.year).sort((a, b) => a - b).join(", "))} — each a wholesale redrawing of who voted for whom. The calmest elections — ${volDips.slice().sort((a, b) => a.year - b.year).map((r) => hlt(String(r.year))).join(" and ")} — were near-repeat contests, where little support moved between blocs.`,
+      note: r2008 ? `A caution on reading this chart: the ${r2008.year} "political tsunami" — when the ruling coalition lost its two-thirds majority — barely registers here (${hlt(num(r2008.volatility ?? 0))}). That shock was about <em>seats</em>, not vote share: BN still won ${hlt(num(r2008.winner_vote_pc) + "%")} of the vote, so relatively little support actually moved between blocs. Vote volatility and seat change can tell very different stories.` : undefined,
       method: {
         eq: String.raw`V = \tfrac{1}{2} \textstyle\sum_i \lvert v_{i,t} - v_{i,t-1} \rvert`,
-        where: `<strong>v<sub>i,t</sub></strong> is bloc <em>i</em>'s vote share at election <em>t</em>. Blocs are matched across elections with pure renames collapsed (PERIKATAN→BN, BA→PR→PH), so relabelling is not counted as change — but genuine splits and mergers are. The first election has no prior to compare against, so it has no value.`,
+        where: `<strong>v<sub>i,t</sub></strong> is bloc <em>i</em>'s vote share at election <em>t</em>. Blocs are matched across elections with pure renames collapsed (PERIKATAN→BN, BA→PR→PH), so relabelling is not counted as change — but genuine splits and mergers are. The first election has no prior to compare against, so its value is null.`,
       },
     },
     /* 8 ─ how close the contests are */
     {
       id: "marginal", h2: "Marginal seats", q: "How close are the contests?",
       now: num(L.marginal_pc, 1) + "%",
-      nowCap: `of seats in ${L.year} were won by less than 5 points — about one seat in ${Math.round(100 / L.marginal_pc)}.`,
+      nowCap: `of seats in ${L.year} were won by less than 5 points — about one in ${Math.round(100 / L.marginal_pc)} seats.`,
       share: `About one in ${Math.round(100 / L.marginal_pc)} Malaysian seats is now a knife-edge: ${num(L.marginal_pc, 1)}% were won by under 5 points in ${L.year}, far above the norm for most of the country's history.`,
       opts: {
         series: [{ label: "Marginal", color: C.red, focal: true, y: (r) => r.marginal_pc }],
         yLabel: "Share of marginal seats", fmt: (v) => num(v, 1) + "%", yMin: 0,
         points: [{ year: margPeak.year, value: margPeak.marginal_pc, tag: "peak" }, { year: L.year, value: L.marginal_pc, tag: "now", place: "below" }],
       },
-      body: `A marginal seat — won by less than five percentage points — is where an election actually turns. Malaysia's map was long dominated by safe seats, but contestability has risen sharply: marginals peaked at ${hl(num(margPeak.marginal_pc, 1) + "% in " + margPeak.year)} and stood at ${hl(num(L.marginal_pc, 1) + "% in " + L.year)} — about ${hlt("one seat in " + Math.round(100 / L.marginal_pc))} decided on a knife-edge.`,
-      note: `A small margin can mean two different things: a genuine two-way cliffhanger, or a multi-cornered split that hands a bloc the seat on a thin plurality. Read this alongside multi-cornered contests above.`,
+      body: `A marginal seat — won by less than five percentage points — is where an election actually turns. Malaysia's map was long dominated by safe seats, but contestability has risen sharply: marginals peaked at ${hl(num(margPeak.marginal_pc, 1) + "% in " + margPeak.year)} and stood at ${hl(num(L.marginal_pc, 1) + "% in " + L.year)} — about ${hlt("one in " + Math.round(100 / L.marginal_pc) + " seats")} decided on a knife-edge.`,
+      note: `A small margin can mean two different things: a genuine two-way cliffhanger, or a multi-cornered split that hands a bloc the seat on a thin plurality. Read this alongside <a href="#multi-cornered">multi-cornered contests</a> above.`,
       method: {
-        text: `The share of federal seats where the winner's margin over the runner-up was under 5 percentage points of the valid vote. Uncontested seats have no margin and count as safe, which they are.`,
+        eq: String.raw`m = \dfrac{\lvert\{\, i : d_i < 5 \,\}\rvert}{n}`,
+        where: `<strong>d<sub>i</sub></strong> is the winning margin in seat <em>i</em> — the winner's lead over the runner-up, in percentage points of the valid vote — and <strong>n</strong> is the number of seats. So <em>m</em> is the share of seats decided by under 5 points. Uncontested seats have no margin and count as safe, which they are.`,
       },
     },
     /* 9 ─ do people show up */
@@ -457,10 +458,10 @@ function sections(): Sec[] {
         yLabel: "Voter turnout", fmt: (v) => num(v) + "%", yMin: 60, yMax: 90,
         points: [{ year: tLow.year, value: tLow.turnout ?? 0, tag: "low", place: "below" }, { year: tPeak.year, value: tPeak.turnout ?? 0, tag: "peak" }, { year: L.year, value: L.turnout ?? 0, tag: "now", place: "below" }],
       },
-      body: `Turnout has stayed high — between ${hlg(num(tLow.turnout ?? 0) + "% and " + num(tPeak.turnout ?? 0) + "%")} across seven decades. The peak was ${hl(num(tPeak.turnout ?? 0) + "% in " + tPeak.year)}, the most fiercely contested election of the BN era. It then fell to ${hl(num(L.turnout ?? 0) + "%")} in ${L.year}, a drop of ${num(tDrop, 1)} points from ${tPrev.year}, despite millions of newly-enrolled young voters under automatic registration and Undi18 — a puzzle worth its own study.`,
+      body: `Turnout has stayed high — between ${hlg(num(tLow.turnout ?? 0) + "% and " + num(tPeak.turnout ?? 0) + "%")} across seven decades. The peak was ${hlg(num(tPeak.turnout ?? 0) + "% in " + tPeak.year)}, the most fiercely contested election of the BN era. It then fell to ${hlg(num(L.turnout ?? 0) + "%")} in ${L.year}, a drop of ${hlg(num(tDrop, 1) + " points")} from ${tPrev.year}, despite millions of newly-enrolled young voters under automatic registration and Undi18 — a puzzle worth its own study.`,
       method: {
         eq: String.raw`T = \dfrac{1}{n} \textstyle\sum_c \dfrac{b_c}{e_c}`,
-        where: `for each seat <em>c</em>, <strong>b<sub>c</sub></strong> is ballots cast and <strong>e<sub>c</sub></strong> registered electors; <strong>n</strong> is the number of seats. The denominator is <em>registered</em> voters — so before automatic registration in 2018, ${hlg("older figures overstate participation among the voting-age population")}, because many eligible adults were never on the roll.`,
+        where: `for each seat <em>c</em>, <strong>b<sub>c</sub></strong> is ballots cast and <strong>e<sub>c</sub></strong> registered electors; <strong>n</strong> is the number of seats. The denominator is <em>registered</em> voters — so before automatic registration in 2018, ${hlt("older figures overstate participation among the voting-age population")}, because many eligible adults were never on the roll.`,
       },
     },
     /* 10 ─ who actually gets elected */
@@ -475,10 +476,11 @@ function sections(): Sec[] {
         yRefs: [{ at: 30, label: "~30% common benchmark" }],
         points: [{ year: F.year, value: F.women_pc, tag: "near zero" }, { year: wPeak.year, value: wPeak.women_pc, tag: "peak" }, { year: L.year, value: L.women_pc, tag: "now", place: "below" }],
       },
-      body: `The people's house has never resembled the people who elect it. Women held just ${hlt(num(F.women_pc, 1) + "% of seats in " + F.year)}; the share climbed to a peak of ${hl(num(wPeak.women_pc, 1) + "% in " + wPeak.year)}, then eased to ${hl(num(L.women_pc, 1) + "% in " + L.year)}. That leaves Parliament far below the ${hl("~30%")} many democracies treat as a floor — and further still from the half of the population women make up.`,
-      note: `This is <em>descriptive</em> representation — who sits in the chamber — not how they vote. The corpus also records candidates' ethnicity, a more contested measure that is not charted here.`,
+      body: `The people's house has never resembled the people who elect it. Women held just ${hl(num(F.women_pc, 1) + "% of seats in " + F.year)}; the share climbed to a peak of ${hl(num(wPeak.women_pc, 1) + "% in " + wPeak.year)}, then eased to ${hl(num(L.women_pc, 1) + "% in " + L.year)}. That leaves Parliament far below the ${hlt("~30%")} many democracies treat as a floor — and further still from the half of the population women make up.`,
+      note: `This is <em>descriptive</em> representation — who sits in the chamber — not how they vote. Read it alongside <a href="#ethnicity">Parliament's ethnic makeup</a> below.`,
       method: {
-        text: `The share of elected federal MPs who are women. A count, not a formula — but the clearest single check on how much the winning benches resemble the electorate.`,
+        eq: String.raw`w = \dfrac{W}{n}`,
+        where: `<strong>W</strong> is the number of elected women MPs and <strong>n</strong> the total number of seats, so <em>w</em> is simply the share of the winning benches who are women — the single clearest check on how much Parliament resembles the electorate. Read it alongside <a href="#ethnicity">Parliament's ethnic makeup</a> below.`,
       },
     },
   ];
@@ -523,7 +525,7 @@ function render() {
   </div></header>
   <div class="wrap">
     <div class="lede">
-      <p>Numbers don't capture everything about a democracy — but a handful of well-defined indices, computed the same way every election, reveal the deep shifts that headlines miss. Here are ${secs.length}, drawn from the <a href="https://electiondata.my" target="_blank" rel="noopener">Malaysian Election Corpus</a> — each a single chart tracing its full history since ${F.year}, paired with the method behind it. Nothing is typed in by hand: every figure is computed straight from the official results, so the page keeps itself current as new elections are added.</p>
+      <p>Numbers don't capture everything about a democracy — but a handful of well-defined indices, each measured the same way at every election, reveal the deep shifts that headlines miss. Here are ${secs.length}, drawn from the <a href="https://electiondata.my" target="_blank" rel="noopener">Malaysian Election Corpus</a> — each revealing a different dimension of the health of Malaysia's political system.</p>
     </div>
     ${secs.map((s, i) => `
       <section class="ind" id="${s.id}">
