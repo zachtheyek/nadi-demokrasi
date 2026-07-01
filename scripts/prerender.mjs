@@ -37,12 +37,14 @@ function card(sp) {
   const capX = ox + numW + 20;
   const capLines = wrap(sp.nowCap, Math.max(30, Math.floor((W - 54 - capX) / 9.6)), 3);
   const capStartY = 168 - (capLines.length - 1) * 11;  // keep the caption block centred on the number
-  const T = (x, y, s, sz, col, w = 400, extra = "") => `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${w}" fill="${col}" font-family="Space Grotesk" ${extra}>${esc(s)}</text>`;
+  // font-family matches the page per element: Space Grotesk for the sans UI/headings, and Gelasio
+  // (a metric-compatible Georgia) italic for the question — which the page renders in serif italic
+  const T = (x, y, s, sz, col, w = 400, extra = "", ff = "Space Grotesk") => `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${w}" fill="${col}" font-family="${ff}" ${extra}>${esc(s)}</text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <rect width="${W}" height="${H}" fill="${C.paper}"/>
     ${T(ox, 50, "NADI DEMOKRASI · THE PULSE OF DEMOCRACY", 20, C.red, 700, 'letter-spacing="4"')}
     ${T(ox, 98, sp.h2, 44, C.ink, 700)}
-    ${T(ox, 132, sp.q, 22, C.teal, 400, 'font-style="italic"')}
+    ${T(ox, 133, sp.q, 23, C.teal, 400, 'font-style="italic"', "Gelasio")}
     ${T(ox, 196, sp.now, 56, C.ink, 700)}
     ${capLines.map((l, i) => T(capX, capStartY + i * 23, l, 20, C.muted)).join("")}
     <g transform="translate(${ox},${oy}) scale(${sc})">${g}</g>
@@ -50,7 +52,11 @@ function card(sp) {
   </svg>`;
 }
 
-const fontBuffers = [400, 500, 700].map((w) => readFileSync(`node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-${w}-normal.woff`));
+const fontBuffers = [
+  ...[400, 500, 700].map((w) => readFileSync(`node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-${w}-normal.woff`)),
+  readFileSync("node_modules/@fontsource/gelasio/files/gelasio-latin-400-italic.woff"),
+  readFileSync("node_modules/@fontsource/gelasio/files/gelasio-latin-400-normal.woff"),
+];
 mkdirSync("dist/og/s", { recursive: true });
 for (const sp of specs) {
   const png = new Resvg(card(sp), { font: { fontBuffers, defaultFontFamily: "Space Grotesk", loadSystemFonts: false }, fitTo: { mode: "width", value: 1200 } }).render().asPng();
@@ -65,8 +71,9 @@ for (const sp of specs) {
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="${esc(title)}"/>
 <meta property="og:description" content="${esc(summary)}"/>
-<meta property="og:image" content="${base}/og/s/${sp.id}.png"/>
+<meta property="og:image" content="${base}/og/s/${sp.id}.png?v=3"/>
 <meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="${base}/og/s/${sp.id}.png?v=3"/>
 <link rel="canonical" href="${base}/#${sp.id}"/>
 <meta http-equiv="refresh" content="0; url=../../#${sp.id}"/>
 </head><body style="font-family:sans-serif;padding:40px">Redirecting to <a href="../../#${sp.id}">${esc(sp.h2)}</a>…</body></html>`);

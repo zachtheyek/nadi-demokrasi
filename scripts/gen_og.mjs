@@ -10,7 +10,9 @@ const rows = JSON.parse(readFileSync("public/data/indicators.json", "utf8")).row
 const F = rows[0], L = rows[rows.length - 1];
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const num = (v, d = 0) => Number(v).toFixed(d);
-const T = (x, y, s, sz, col, w = 400, extra = "") => `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${w}" fill="${col}" font-family="Space Grotesk" ${extra}>${esc(s)}</text>`;
+// Space Grotesk for the sans UI; Gelasio (a metric-compatible Georgia) for the serif tagline, to
+// match the page's hero (which sets the deck in Georgia)
+const T = (x, y, s, sz, col, w = 400, extra = "", ff = "Space Grotesk") => `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${w}" fill="${col}" font-family="${ff}" ${extra}>${esc(s)}</text>`;
 
 // one indicator tile: label, latest value, a sparkline, and the first→latest movement
 function tile(x, y, w, h, t) {
@@ -44,12 +46,15 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" v
   <rect width="1200" height="630" fill="${C.paper}"/>
   ${T(ox, 70, "NADI DEMOKRASI · THE PULSE OF DEMOCRACY", 22, C.red, 700, 'letter-spacing="5"')}
   ${T(ox, 150, "Malaysia's democracy, in numbers.", 62, C.ink, 700, 'letter-spacing="-1"')}
-  ${T(ox, 210, "Seven decades of general elections, measured — twelve political-science indicators", 25, C.muted)}
-  ${T(ox, 244, "across sixteen elections, every formula open and every number reproducible.", 25, C.muted)}
+  ${T(ox, 210, "Seven decades of general elections, measured — twelve political-science indicators", 25, C.muted, 400, "", "Gelasio")}
+  ${T(ox, 244, "across sixteen elections, every formula open and every number reproducible.", 25, C.muted, 400, "", "Gelasio")}
   ${tiles.map((t, i) => tile(ox + i * (tw + gap), ty, tw, 170, t)).join("")}
   ${T(ox, 600, "16 general elections · 1955–2022 · Data: Malaysian Election Corpus (Thevesh)", 21, C.muted)}
 </svg>`;
 
-const fontBuffers = [400, 500, 700].map((w) => readFileSync(`node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-${w}-normal.woff`));
+const fontBuffers = [
+  ...[400, 500, 700].map((w) => readFileSync(`node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-${w}-normal.woff`)),
+  readFileSync("node_modules/@fontsource/gelasio/files/gelasio-latin-400-normal.woff"),
+];
 writeFileSync("dist/og-default.png", new Resvg(svg, { font: { fontBuffers, defaultFontFamily: "Space Grotesk", loadSystemFonts: false }, fitTo: { mode: "width", value: 1200 } }).render().asPng());
 console.log("generated default OG card");

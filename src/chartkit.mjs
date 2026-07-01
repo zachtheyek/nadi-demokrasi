@@ -30,6 +30,8 @@ export function computeDerived(rows) {
   const L = rows[rows.length - 1], F = rows[0];
   const gPeak = arg(rows, "gallagher", 1);
   const mPeak = arg(rows, "malapportionment", 1), mLow = arg(rows, "malapportionment", -1);
+  const mbPeak = arg(rows, "map_bias", 1), mbLow = arg(rows, "map_bias", -1);
+  const cPeak = arg(rows, "compactness", 1), cLow = arg(rows, "compactness", -1);
   const bPeak = arg(rows, "winner_seat_bonus", 1);
   const minorityWins = rows.filter((r) => r.winner_vote_pc < 50 && r.winner_seat_pc > 50);
   const minRecent = minorityWins.length ? minorityWins[minorityWins.length - 1].year : null;
@@ -60,7 +62,7 @@ export function computeDerived(rows) {
   const margPeak = arg(rows, "marginal_pc", 1);
   const wPeak = arg(rows, "women_pc", 1);
   const toPeak = arg(rows, "turnover", 1), toLow = arg(rows, "turnover", -1);
-  return { L, F, gPeak, mPeak, mLow, bPeak, minorityWins, minRecent, bNow, bonusCap, isFirstNeg, hung,
+  return { L, F, gPeak, mPeak, mLow, mbPeak, mbLow, cPeak, cLow, bPeak, minorityWins, minRecent, bNow, bonusCap, isFirstNeg, hung,
     enpPeak, enpLow, volTop, volDips, volContext, r2008, tPeak, tLow, tPrev, tDrop, belowHalf,
     twoThirdsYr, big3, candLow, candPeak, margPeak, wPeak, toPeak, toLow };
 }
@@ -93,7 +95,8 @@ export function buildSpecs(rows) {
         ],
         yLabel: "Winner's seat share vs vote share", fmt: (v) => num(v) + "%", yMin: 0, yMax: 100,
         gapFill: true, gap: { year: d.bPeak.year, label: "+" + num(d.bPeak.winner_seat_bonus, 1) + " pp bonus" },
-        points: d.minorityWins.map((r) => ({ year: r.year, value: r.winner_seat_pc, tag: "won on " + num(r.winner_vote_pc) + "%", place: (r.winner_seat_pc > 61 ? "below" : "above") })),
+        // the "won on 46%" vote figure lives on the teal line, so tint it teal
+        points: d.minorityWins.map((r) => ({ year: r.year, value: r.winner_seat_pc, tag: "won on " + num(r.winner_vote_pc) + "%", place: (r.winner_seat_pc > 61 ? "below" : "above"), hi: num(r.winner_vote_pc) + "%", hiColor: C.teal })),
       },
     },
     {
@@ -106,6 +109,37 @@ export function buildSpecs(rows) {
         yLabel: "Malapportionment index", fmt: (v) => num(v, 1) + "%", yMin: 0,
         yRefs: [{ at: 0, to: 5, label: "most democracies ≤ 5%" }, { at: 15, label: "among the most malapportioned", label2: "globally", side: "right" }],
         points: [{ year: d.mLow.year, value: d.mLow.malapportionment ?? 0, tag: "lowest", place: "below" }, { year: d.mPeak.year, value: d.mPeak.malapportionment ?? 0, tag: "peak" }],
+      },
+    },
+    {
+      id: "map-bias", h2: "Who the map favours", q: "Do the over-represented seats break one way?",
+      now: (d.L.map_bias >= 0 ? "+" : "−") + num(Math.abs(d.L.map_bias ?? 0), 0) + "%",
+      nowCap: d.L.map_bias >= 0
+        ? `the winning bloc's seats each held about ${num(Math.abs(d.L.map_bias ?? 0), 0)}% fewer voters than the average seat in ${d.L.year} — the unequal map favoured the winner.`
+        : `the winning bloc's seats each held about ${num(Math.abs(d.L.map_bias ?? 0), 0)}% more voters than the average seat in ${d.L.year} — the unequal map worked against the winner, not for it.`,
+      share: `Malaysia's unequal map once handed the winner its smallest seats; by ${d.L.year} that flipped — the winning bloc's seats held about ${num(Math.abs(d.L.map_bias ?? 0), 0)}% ${d.L.map_bias >= 0 ? "fewer" : "more"} voters than average, so the rural-weighted map now works against whoever wins the vote.`,
+      opts: {
+        series: [{ label: "Map bias", color: C.red, focal: true, y: (r) => r.map_bias }],
+        yLabel: "Winner's seat-size advantage", fmt: (v) => (v >= 0 ? "+" : "−") + num(Math.abs(v), 0) + "%",
+        yRefs: [{ at: 0, label: "no tilt" }],
+        points: [
+          { year: d.mbPeak.year, value: d.mbPeak.map_bias, tag: "peak tilt to winner" },
+          { year: d.L.year, value: d.L.map_bias, tag: "now", place: "below" },
+        ],
+      },
+    },
+    {
+      id: "compactness", h2: "District shapes", q: "How irregular are the boundaries?",
+      now: num(d.L.compactness ?? 0, 2),
+      nowCap: `average compactness of a parliamentary seat in ${d.L.year} (Polsby–Popper; 1 = a perfect circle) — the least compact boundaries on record, after the latest redelineation.`,
+      share: `Malaysia's parliamentary boundaries are the least compact on record: average Polsby–Popper compactness fell to ${num(d.L.compactness ?? 0, 2)} in ${d.L.year} (1 = a circle), after the latest redelineation redrew the most irregular seats in its history.`,
+      opts: {
+        series: [{ label: "Compactness", color: C.red, focal: true, y: (r) => r.compactness }],
+        yLabel: "District compactness (Polsby–Popper)", fmt: (v) => num(v, 2), yMin: 0.25, yMax: 0.42,
+        points: [
+          { year: d.cPeak.year, value: d.cPeak.compactness, tag: "most compact" },
+          { year: d.L.year, value: d.L.compactness, tag: "least compact", place: "below" },
+        ],
       },
     },
     {
@@ -165,7 +199,7 @@ export function buildSpecs(rows) {
       },
     },
     {
-      id: "turnover", h2: "Seats changing hands", q: "How many seats flip between elections?",
+      id: "turnover", h2: "Seat turnover", q: "How many seats flip between elections?",
       now: num(L.turnover ?? 0) + "%",
       nowCap: `of seats changed hands in ${L.year} — the highest churn on record, more than half the House.`,
       share: `${num(L.turnover ?? 0)}% of Malaysian seats changed hands in ${L.year} — the highest turnover on record, as Perikatan Nasional surged and Barisan Nasional collapsed.`,
@@ -358,9 +392,12 @@ export function chartSVG(rows, o, W, H) {
     const tag = p.tag ? `${yy(p.year)} (${p.tag})` : yy(p.year);
     const w = Math.max(o.fmt(p.value).length * 6.4, tag.length * 5.7);
     const drawDot = () => `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${s.color}"/>`;
+    // the tag is muted, but an optional substring (p.hi) can be tinted — e.g. a vote % that lives
+    // on the other (teal) line gets that line's colour
+    const tagInner = p.hi ? esc(tag).replace(esc(p.hi), `<tspan fill="${p.hiColor || C.teal}">${esc(p.hi)}</tspan>`) : esc(tag);
     const drawText = (tx, vY, sY, anchor) =>
       txt(tx, vY, anchor, `fill="${s.color}" font-size="12.5" font-weight="700"`, o.fmt(p.value)) +
-      txt(tx, sY, anchor, `fill="${C.muted}" font-size="10.5"`, tag);
+      `<text x="${tx.toFixed(1)}" y="${sY.toFixed(1)}" text-anchor="${anchor}" ${FF} fill="${C.muted}" font-size="10.5">${tagInner}</text>`;
 
     if (p.place === "left" || p.place === "right") {
       const dir = p.place === "left" ? -1 : 1;

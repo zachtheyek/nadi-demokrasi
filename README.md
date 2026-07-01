@@ -8,13 +8,15 @@ of political science.
 
 ![Nadi Demokrasi](https://zachtheyek.github.io/nadi-demokrasi/og-default.png)
 
-## The twelve indicators
+## The fourteen indicators
 
 | Indicator | Formula | What it shows |
 |-----------|---------|---------------|
 | **Disproportionality** | Gallagher LSq = √(½ Σ(vᵢ−sᵢ)²) | How faithfully votes become seats (peaked 24.0 in 2004) |
 | **Winner's seat bonus** | seat% − vote% | FPTP's reward to the largest bloc (+27pp → −1pp) |
 | **Malapportionment** | MAL = ½ Σ\|1/n − eᵢ/E\| (Samuels–Snyder) | Unequal voters per seat — the *structural* distortion (8% → 18%, a record) |
+| **Map bias** | 100·(ē − ēᵥᵥ) / ē | *Who* the unequal map favours — the winner's seats vs the average (+22% in 2013 → −32% in 2022) |
+| **District shapes** | Polsby–Popper = 4πA / P² | Boundary compactness / gerrymandering signal (0.38 → 0.30, least compact on record) |
 | **Winner's vote share** | — | The end of the majority party (82% → 38%) |
 | **Effective N of parties** | N = 1/Σpᵢ² (Laakso–Taagepera) | Fragmentation (1.5 → 3.6) |
 | **Multi-cornered contests** | mean candidates / seat | Straight fights → crowded ballots (2.0 → 4.3; 96% now 3+-cornered) |
@@ -27,7 +29,9 @@ of political science.
 
 Disproportionality (the total vote-to-seat gap) is decomposed into its two sources:
 **malapportionment** (unequal districts) and the **winner's bonus** (the mechanical FPTP
-reward). The sections then read in narrative order — the winner's grip and the party
+reward). The essay then probes how the boundaries themselves are drawn — **who** the unequal
+map favours (*map bias*) and how irregular the district shapes are (*compactness*, a
+gerrymandering signal) — before reading on in narrative order: the winner's grip and the party
 system, the crowding and closeness of contests, then participation and representation.
 
 Every number on the page (headline figures, chart points, the prose, the annotations,
@@ -50,11 +54,15 @@ These indicators describe the national party system honestly, but they do not me
 everything. The most important caveats — also shipped on the page, under **Method &
 limitations**:
 
-- **Malapportionment is now measured, but with its own limits.** The Samuels–Snyder
-  index captures unequal *registered* electors per seat; it does not adjust for the gap
-  between registered and voting-age population, and it does not say *which* bloc the
-  unequal map favours. A partisan-bias / efficiency-gap measure (the gerrymandering
-  question proper) is the natural next addition — the seat-level vote data is in the corpus.
+- **The gerrymandering question is partly, not fully, answered.** Unequal district *sizes*
+  are covered by **malapportionment** and **map bias** (whose seats are smaller — who the map
+  favours), and irregular district *shapes* by **compactness** (Polsby–Popper). What stays out
+  are the textbook partisan-symmetry measures — the *efficiency gap* and *partisan bias* — which
+  are defined for two-party competition; Malaysia's multi-bloc, multi-cornered contests give no
+  clean two-side wasted-vote split or 50/50 counterfactual, so they aren't sound as a single
+  number here. Malapportionment itself uses *registered* electors, so it doesn't adjust for the
+  gap between the registered and the voting-age population; and low compactness can be innocent
+  (coastlines, rivers, East-Malaysian geography) — a signal, not proof of intent.
 - **Gallagher still reports the total.** The disproportionality score bundles both the
   winner's bonus and malapportionment; the two are shown separately, but the corpus does
   not let us cleanly attribute every Gallagher point to one source or the other.
@@ -81,10 +89,7 @@ limitations**:
   electoral geography, not a verdict on any community.
 - **Seat turnover is threaded, not exact.** Seats are matched across delimitations to their dominant
   boundary ancestor, so the flip count is approximate in redelineation years.
-- **Efficiency gap / partisan bias not shown.** The measures that answer "which side does the map
-  favour?" are defined for *two-party* systems; in Malaysia's multi-bloc, multi-cornered contests
-  there is no clean two-side wasted-vote split or 50/50 counterfactual, so they aren't sound as a
-  single number here. **Turnout by age** needs the individual voter rolls (not this corpus) — see
+- **Turnout by age** needs the individual voter rolls (not this corpus) — see
   [Undi Generasi](https://zachtheyek.github.io/undi-generasi/).
 
 ## Reproduce
@@ -98,8 +103,12 @@ npm run build   # vite build + OG card
 
 `npm run data` needs `pandas`, `pyarrow` and `numpy` and a local checkout of the
 [`meco-data`](https://github.com/zachtheyek/meco-data) foundation as a sibling directory
-(`../meco-data`). `scripts/compute_indicators.py` is ~120 lines and fully documents every
-formula and unit choice. Data downloads (CSV + JSON) are linked from the page.
+(`../meco-data`). `scripts/compute_indicators.py` fully documents every formula and unit choice;
+it does **not** draw the charts — it only turns MECo into the small `indicators` table the
+dashboard renders from. District-shape compactness is precomputed once per delimitation into the
+committed `data/compactness.json` (by `scripts/compute_compactness.py`, which needs the boundary
+GeoJSONs — boundaries change only ~once a decade). Data downloads (CSV + JSON + both scripts) are
+linked from the page.
 
 ## Data & self-update
 
@@ -137,7 +146,8 @@ also credit the underlying data — the Malaysian Election Corpus by Thevesh The
 All underlying data is the **Malaysian Election Corpus (MECo)** by
 **[Thevesh Thevananthan](https://x.com/Thevesh)** ([electiondata.my](https://electiondata.my), CC0),
 peer-reviewed in *Scientific Data* 13, 190 (2026). Not affiliated with the author.
-Indicators follow Laakso–Taagepera (1979), Gallagher (1991), Pedersen (1979).
+Indicators follow Laakso–Taagepera (1979), Gallagher (1991), Pedersen (1979),
+Samuels–Snyder (2001) and Polsby–Popper (1991).
 
 ## Sibling projects
 

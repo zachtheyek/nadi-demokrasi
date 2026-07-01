@@ -15,7 +15,14 @@ independents share the BEBAS bloc). Indicators:
   • Gallagher disproportionality:  LSq = sqrt( ½ Σ (vᵢ − sᵢ)² )   (vᵢ, sᵢ in %)
   • Pedersen electoral volatility:  V = ½ Σ |vᵢ,t − vᵢ,t-1|  (matched blocs;
         coalition/party *renames* collapsed so relabelling isn't counted as churn)
+  • Malapportionment (Samuels–Snyder), and its partisan counterpart "map bias" — the mean
+        electorate of the winning bloc's seats vs the national mean (who the unequal map favours)
+  • District-shape compactness (Polsby–Popper), read from data/compactness.json (precomputed
+        per delimitation by compute_compactness.py — boundaries aren't in the parquet foundation)
   • Turnout, winner's vote% vs seat% (the "seat bonus"), number of blocs contesting.
+
+This script produces the DATA the dashboard reads; it does not draw the charts — those are
+rendered in the browser (and for share cards) from this output.
 
 Output: public/data/indicators.json, public/data/indicators.csv
 """
@@ -88,6 +95,23 @@ for elec, d in elec_date.items():
             turnover_by_year[int(d[:4])] = round(100.0 * flips / len(common), 1)
     prev_d = d
 
+# District-shape compactness (Polsby–Popper), precomputed per delimitation and committed by
+# scripts/compute_compactness.py (boundaries aren't in the parquet foundation). Map each election
+# to the delimitation in force per region and take a seat-weighted national mean.
+COMP_PATH = Path("data/compactness.json")
+COMP = json.loads(COMP_PATH.read_text()) if COMP_PATH.exists() else None
+def compactness_for(year: int):
+    if not COMP:
+        return None
+    acc = n = 0.0
+    for region in ("peninsular", "sabah", "sarawak"):
+        applic = [int(y) for y in COMP.get(region, {}) if int(y) <= year]
+        if not applic:
+            continue
+        rec = COMP[region][str(max(applic))]
+        acc += rec["pp"] * rec["n"]; n += rec["n"]
+    return round(acc / n, 3) if n else None
+
 rows = []
 prev_vote = None  # dict canon_uid -> vote share (fraction) of previous election
 for elec, g in fed.groupby("election"):
@@ -128,6 +152,22 @@ for elec, g in fed.groupby("election"):
         e_share = electors / electors.sum()
         malapp = float(0.5 * np.sum(np.abs(e_share - 1.0 / len(electors))) * 100)
 
+    # Map bias — who does the unequal map favour? Compare the mean electorate of the seats the
+    # WINNING bloc took to the national mean seat electorate. Seats smaller than average are
+    # over-represented (each vote counts for more), so a POSITIVE gap means the winner sits in the
+    # over-weighted seats (the malapportioned map helped it); a negative gap means it won despite
+    # holding the larger, under-weighted seats. This is the partisan counterpart to malapportionment,
+    # using only electors + winner — no two-party assumption (unlike the efficiency gap).
+    st_e = st[st.voters_total.notna() & (st.voters_total > 0)].copy()
+    map_bias = None
+    if len(st_e) > 1:
+        st_e["sbloc"] = np.where(st_e.win_coalition_uid.notna() & (st_e.win_coalition_uid != "000-ALONE"),
+                                 "coal:" + st_e.win_coalition_uid.astype(str), "party:" + st_e.win_party_uid.astype(str))
+        top_sbloc = st_e.sbloc.value_counts().idxmax()
+        mean_all = st_e.voters_total.mean()
+        mean_win = st_e[st_e.sbloc == top_sbloc].voters_total.mean()
+        map_bias = float(100.0 * (mean_all - mean_win) / mean_all)
+
     # top blocs by seats (drift-proof names for the narrative, e.g. the "three biggest blocs")
     tb = by_bloc[by_bloc.seats > 0].sort_values("seats", ascending=False)
     top_blocs = [{"label": bloc_label(r.bloc_uid), "seats": int(r.seats),
@@ -153,6 +193,8 @@ for elec, g in fed.groupby("election"):
         "enp_votes": round(float(enp_v), 2), "enp_seats": round(float(enp_s), 2),
         "gallagher": round(float(gallagher), 2),
         "malapportionment": (round(malapp, 2) if malapp is not None else None),
+        "map_bias": (round(map_bias, 1) if map_bias is not None else None),
+        "compactness": compactness_for(year),
         "volatility": (round(float(volatility), 2) if volatility is not None else None),
         "turnover": turnover_by_year.get(year),
         "turnout": (round(turnout, 1) if not np.isnan(turnout) else None),
@@ -185,33 +227,47 @@ readme = f"""Nadi Demokrasi — reproducible democracy indicators for Malaysia
 ================================================================
 Generated: {datetime.now(timezone.utc).date().isoformat()}
 
+What this bundle is
+  This is the DATA behind the dashboard, plus the one script that produces it.
+  compute_indicators.py does NOT draw any charts — it is only the bridge that turns the
+  Malaysian Election Corpus (MECo) into the small indicators table the dashboard reads. The
+  plots you see on the site are rendered separately, in the browser (and for the share cards),
+  entirely from indicators.json below.
+    MECo (raw results)  ->  compute_indicators.py  ->  indicators.{{csv,json}}  ->  the charts
+  Nothing on the page is hand-entered.
+
 Contents
   indicators.csv          one row per federal general election (1955- ), flat table
   indicators.json         the same rows, plus each election's top blocs by seats
-  compute_indicators.py   the exact script that produced them
+  compute_indicators.py   the exact script that turned MECo into the table (no plotting)
+  compute_compactness.py  precomputes district-shape compactness from boundary maps (occasional)
+  compactness.json        its output (mean Polsby-Popper per delimitation), an input to the above
 
-Every figure on https://zachtheyek.github.io/nadi-demokrasi/ is computed from these
-files — nothing on the page is hand-entered.
-
-Reproduce
+Reproduce the table
   1. Clone the data foundation next to this folder:
        git clone https://github.com/zachtheyek/meco-data
   2. pip install pandas pyarrow numpy
-  3. python compute_indicators.py         # writes public/data/indicators.{{csv,json}}
+  3. mkdir -p data && cp compactness.json data/   # compute_indicators.py reads data/compactness.json
+  4. python compute_indicators.py                 # writes public/data/indicators.{{csv,json}}
      (or point it elsewhere with MECO_OUT=/path/to/meco-data/out)
+  compactness.json rarely changes; regenerate it with compute_compactness.py only after a new
+  redelineation, pointing MAPS_DIR at the delimitation boundary GeoJSONs.
 
 Source & credit
   All underlying data is the Malaysian Election Corpus (MECo) by Thevesh Thevananthan,
   https://electiondata.my — CC0, peer-reviewed in Scientific Data 13, 190 (2026).
-  Indicators follow Laakso-Taagepera (1979), Gallagher (1991), Pedersen (1979) and
-  Samuels-Snyder (2001). Dashboard code: MIT. This bundle: same terms as the sources.
+  Indicators follow Laakso-Taagepera (1979), Gallagher (1991), Pedersen (1979), Samuels-Snyder
+  (2001) and Polsby-Popper (1991). Dashboard code: MIT. This bundle: same terms as the sources.
 """
 with zipfile.ZipFile(OUT / "nadi-demokrasi-data.zip", "w", zipfile.ZIP_DEFLATED) as z:
     z.write(OUT / "indicators.csv", "indicators.csv")
     z.write(OUT / "indicators.json", "indicators.json")
     z.write(Path(__file__), "compute_indicators.py")
+    z.write(Path(__file__).parent / "compute_compactness.py", "compute_compactness.py")
+    if COMP_PATH.exists():
+        z.write(COMP_PATH, "compactness.json")
     z.writestr("README.txt", readme)
 
 pd.set_option("display.width", 220)
-print(df[["year", "winner", "winner_vote_pc", "winner_seat_pc", "winner_seat_bonus", "gallagher",
-          "malapportionment", "enp_seats", "volatility", "turnout", "women_pc", "cand_per_seat", "marginal_pc"]].to_string(index=False))
+print(df[["year", "winner", "winner_seat_bonus", "gallagher", "malapportionment", "map_bias",
+          "compactness", "enp_seats", "volatility", "turnover", "turnout", "women_pc", "marginal_pc"]].to_string(index=False))

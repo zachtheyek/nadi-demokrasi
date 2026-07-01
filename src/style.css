@@ -36,8 +36,10 @@ section.ind:first-of-type { border-top: 0; }
 .ind .q { color: var(--accent2); font-style: italic; font-size: 17px; margin-top: 6px; }
 /* GitHub-style: a link anchor tucked in the left gutter, revealed on hover */
 .anchor { position: absolute; left: -1.35em; top: .12em; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 20px; line-height: 1; text-decoration: none; color: var(--muted); opacity: 0; transition: opacity .12s; }
-.ind:hover .anchor, .anchor:focus { opacity: .6; }
+.ind:hover .anchor, .method-sec:hover .anchor, .anchor:focus { opacity: .6; }
 .anchor:hover { opacity: 1; color: var(--accent); }
+/* the Method & limitations heading gets the same gutter # link as the sections */
+.mhead { position: relative; }
 .sectbar { display: flex; align-items: center; gap: 8px; flex: none; margin-top: 6px; }
 .sharex { font-family: "Space Grotesk", sans-serif; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 10px; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .sharex:hover { border-color: var(--accent); color: var(--accent); }

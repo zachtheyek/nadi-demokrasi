@@ -20,6 +20,7 @@ interface Bloc { label: string; seats: number; seat_pc: number; }
 interface Row {
   election: string; year: number; n_seats: number; n_blocs: number;
   enp_votes: number; enp_seats: number; gallagher: number; malapportionment: number | null;
+  map_bias: number | null; compactness: number | null;
   volatility: number | null; turnover: number | null; turnout: number | null;
   women_pc: number; cand_per_seat: number; three_plus_pc: number; marginal_pc: number;
   malay_pc: number; chinese_pc: number; indian_pc: number; em_bumi_pc: number;
@@ -63,7 +64,7 @@ function showToast(msg: string) { toast.textContent = msg; toast.classList.add("
    point callouts for peaks/dips (with the value and an apostrophe-year), horizontal reference
    lines/bands for meaningful thresholds, and faint shaded regions for named periods. */
 interface Series { label: string; color: string; focal?: boolean; y: (r: Row) => number | null; }
-interface PointC { year: number; value: number; tag: string; place?: "above" | "below" | "left" | "right"; }
+interface PointC { year: number; value: number; tag: string; place?: "above" | "below" | "left" | "right"; hi?: string; hiColor?: string; }
 interface YRef { at: number; to?: number; label: string; label2?: string; side?: "left" | "right"; }
 interface XBand { from: number; to: number; label?: string; }
 interface XLine { year: number; label: string; }
@@ -121,6 +122,8 @@ function sections(): Sec[] {
   // chartkit's buildSpecs — the shared source of truth — so they are not repeated here.)
   const gPeak = arg("gallagher", 1);
   const mPeak = arg("malapportionment", 1), mLow = arg("malapportionment", -1);
+  const mbPeak = arg("map_bias", 1);
+  const cPeak = arg("compactness", 1), cLow = arg("compactness", -1);
   const bPeak = arg("winner_seat_bonus", 1);
   const minorityWins = ROWS.filter((r) => r.winner_vote_pc < 50 && r.winner_seat_pc > 50);
   const minRecent = minorityWins.length ? minorityWins[minorityWins.length - 1].year : null;
@@ -180,7 +183,25 @@ function sections(): Sec[] {
         where: `<strong>n</strong> is the number of seats, <strong>e<sub>i</sub></strong> the registered electors in seat <em>i</em>, and <strong>E</strong> the total electorate. Each seat carries an equal 1 / n of the seats but an unequal e<sub>i</sub> / E of the voters; the index sums those gaps and halves them — the fraction of seats "in the wrong place" under one-person-one-vote.`,
       },
     },
-    /* 4 ─ the winner's grip, over time */
+    /* 4 ─ the other source: who the unequal map favours */
+    "map-bias": {
+      body: `For most of Malaysia's history the unequal map barely tilted the outcome — the winning bloc's seats were about the size of everyone else's. Then it mattered: in ${hlt(String(mbPeak.year))} the winning bloc (${mbPeak.winner}) held seats ${hl(num(Math.abs(mbPeak.map_bias ?? 0), 0) + "% smaller")} than the average, sweeping small rural seats while trailing in the big urban ones. ${(L.map_bias ?? 0) < 0 ? `Since then the tilt has flipped: by ${L.year} the winning bloc's seats held ${hl(num(Math.abs(L.map_bias ?? 0), 0) + "% more voters")} than average — so the same rural-weighted map now works against whoever wins the popular vote.` : `By ${L.year} the winner's seats still ran ${hl(num(Math.abs(L.map_bias ?? 0), 0) + "% smaller")} than average — the map still favours it.`}`,
+      note: `This is one honest way to ask <em>who</em> the unequal map favours — using only electorate sizes and who won each seat, with no two-party assumption. It measures the effect of unequal district <em>sizes</em> (<a href="#malapportionment">malapportionment</a>), not the drawing of district <em>shapes</em> — that comes <a href="#compactness">next</a>. The efficiency gap and partisan bias, the textbook "who benefits" measures, assume a two-party contest Malaysia does not have; see <a href="#limitations">Method &amp; limitations</a>.`,
+      method: {
+        eq: String.raw`\beta = 100 \cdot \dfrac{\bar{e} - \bar{e}_w}{\bar{e}}`,
+        where: `<strong>ē</strong> is the mean electorate of all seats and <strong>ē<sub>w</sub></strong> the mean electorate of the seats the winning bloc took. A positive <em>β</em> means the winner's seats are smaller than average — over-represented, so the malapportioned map worked in its favour; a negative <em>β</em> means it won while sitting in the larger, under-weighted seats. It needs only electors and the winner, so unlike the efficiency gap it makes no two-party assumption.`,
+      },
+    },
+    /* 5 ─ the shape of the lines */
+    "compactness": {
+      body: `A seat's Polsby–Popper score compares its area to a circle of the same perimeter — ${hl("1 is a perfect circle")}, and lower means a more irregular, sprawling or tentacled outline. Malaysia's seats were at their most compact — an average of ${hl(num(cPeak.compactness ?? 0, 2))} — decades ago; the most recent redelineation has left them the ${hl("least compact on record")}, at ${hl(num(cLow.compactness ?? 0, 2) + " in " + cLow.year)}.`,
+      note: `Irregular shapes are a <em>signal</em>, not proof of intent: coastlines, rivers and the scatter of East Malaysia push compactness down for reasons that have nothing to do with drawing an advantage. Read it with <a href="#malapportionment">malapportionment</a> and <a href="#map-bias">who the map favours</a> — together they describe how the lines are drawn; none alone proves why.`,
+      method: {
+        eq: String.raw`\mathrm{PP} = \dfrac{4\pi A}{P^2}`,
+        where: `<strong>A</strong> is a seat's area and <strong>P</strong> its perimeter; the score is 1 for a perfect circle and falls toward 0 as the outline grows longer and more contorted for the area it encloses. We average it over all federal seats in each delimitation, measured on the boundary maps. A falling line means the newest boundaries are less compact than the ones they replaced.`,
+      },
+    },
+    /* 6 ─ the winner's grip, over time */
     "dominance": {
       body: `The winning coalition's share of the popular vote has fallen from ${hl(num(F.winner_vote_pc) + "% in " + F.year)} to ${hl(num(L.winner_vote_pc) + "% in " + L.year)} — the lowest in our history.${twoThirdsYr ? ` The two-thirds parliamentary supermajority, long the benchmark of dominance, was lost for good after ${hlt(String(twoThirdsYr))}.` : ""} Malaysia has moved decisively from a dominant-party system to competitive, coalition-by-coalition politics.`,
       method: {
@@ -289,7 +310,7 @@ function render() {
   <header class="hero"><div class="wrap">
     <div class="kicker">Nadi Demokrasi · The Pulse of Democracy</div>
     <h1>Malaysia's democracy,<br>in numbers</h1>
-    <p class="dek">Seven decades of general elections measured with the standard tools of political science — disproportionality, malapportionment, fragmentation, competitiveness, representation and turnout.</p>
+    <p class="dek">Seven decades of general elections measured with the standard tools of political science — disproportionality, malapportionment, gerrymandering, fragmentation, competitiveness, representation and turnout.</p>
     <div class="meta">${ROWS.length} federal general elections · ${F.year}–${L.year} · reproducible &amp; citable</div>
     <div class="herobtns">
       <button class="btn" id="shareBtn">${X_ICON} Share</button>
@@ -316,18 +337,18 @@ function render() {
       </section>`).join("")}
 
     <div class="method-sec" id="limitations">
-      <h2 class="sans">Method &amp; limitations</h2>
+      <div class="mhead"><a class="anchor" href="#limitations" data-link="limitations" title="Copy link to this section" aria-label="Copy link to this section">#</a><h2 class="sans">Method &amp; limitations</h2></div>
       <p>Every figure here is computed from official results by one short, open script. The unit of analysis is each election's <b>blocs</b>: a candidate's coalition where they ran in one, otherwise their party (so non-aligned parties are their own bloc; independents share one). Vote shares use valid votes; seat shares use the federal seats of each election — a number that itself grew from ${F.n_seats} in ${F.year} to ${L.n_seats} in ${L.year} as the country and its parliament expanded.</p>
       <h3 class="sans">What these indicators do <em>not</em> capture</h3>
       <ul>
-        <li><b>Gallagher bundles both distortions.</b> The disproportionality score reports the <em>total</em> vote-to-seat gap; malapportionment and the winner's bonus are shown separately, but the corpus does not let us cleanly attribute every point of Gallagher to one or the other.</li>
-        <li><b>No measure of <em>which</em> side the map favours.</b> Malapportionment shows districts are unequal, but not who benefits. The tools that answer "who does the map favour?" — the <em>efficiency gap</em> (Stephanopoulos–McGhee 2001/2015: the difference in each side's "wasted" votes, ÷ total votes) and <em>partisan bias</em> (the seat-share gap the two sides would win at an identical 50% vote) — are defined for <em>two-party</em> competition. Malaysia is a multi-bloc, largely multi-cornered system, so there is no clean two-side split of wasted votes and no clean 50/50 counterfactual; forcing one would discard the very multi-cornered reality shown above. They are the natural next dimension, but not sound as a single number here.</li>
-        <li><b>Vote volatility ≠ seat upheaval.</b> Pedersen volatility tracks how much <em>vote share</em> moves between blocs; <a href="#turnover">seat turnover</a> tracks how many seats change hands. They diverge — 2008 flipped many seats on modest vote movement — so read the two together rather than either alone.</li>
-        <li><b>Seat turnover is threaded, not exact.</b> Because seat boundaries are redrawn periodically, turnover matches each seat to its dominant boundary ancestor (electiondata.my lineage); in redelineation years, where seats split or merge, the flip count is approximate.</li>
-        <li><b>Bloc definition is a choice.</b> Effective-parties and Gallagher figures depend on counting coalitions as the unit rather than individual parties; we use coalitions because that is how Malaysian governments form, but a party-level reading would give higher fragmentation and different disproportionality.</li>
-        <li><b>Representation is descriptive, not substantive.</b> Women's and ethnic makeup count <em>who sits</em>, not how they vote or whom they serve; ethnic makeup also reflects the electorate's own composition and where seats are drawn, not a verdict on any community.</li>
+        <li><b>Gallagher bundles both distortions.</b> The <a href="#disproportionality">disproportionality</a> score reports the <em>total</em> vote-to-seat gap; the <a href="#seat-bonus">winner's bonus</a> and <a href="#malapportionment">malapportionment</a> are shown separately, but the corpus does not let us cleanly attribute every point of Gallagher to one or the other.</li>
+        <li><b>The gerrymandering question, partly answered.</b> Two ways boundaries can distort a result are now on the page: unequal district <em>sizes</em> — <a href="#malapportionment">malapportionment</a> and <a href="#map-bias">who it favours</a> — and irregular district <em>shapes</em> — <a href="#compactness">compactness</a>. What stays out are the textbook partisan-symmetry measures: the <em>efficiency gap</em> (how lopsidedly each side's votes are "wasted", as a share of all votes cast) and <em>partisan bias</em> (the seat-share gap the two sides would win at an identical 50% vote). Both are defined for <em>two-party</em> competition; Malaysia is multi-bloc and largely multi-cornered, so there is no clean two-side split of wasted votes and no clean 50/50 counterfactual, and forcing one would discard the very multi-cornered reality shown above.</li>
+        <li><b>Bloc definition is a choice.</b> <a href="#fragmentation">Effective-parties</a> and <a href="#disproportionality">Gallagher</a> figures depend on counting coalitions as the unit rather than individual parties; we use coalitions because that is how Malaysian governments form, but a party-level reading would give higher fragmentation and different disproportionality.</li>
+        <li><b>Vote volatility ≠ seat upheaval.</b> <a href="#volatility">Pedersen volatility</a> tracks how much <em>vote share</em> moves between blocs; <a href="#turnover">seat turnover</a> tracks how many seats change hands. They diverge — 2008 flipped many seats on modest vote movement — so read the two together rather than one or the other.</li>
+        <li><b>Seat turnover is threaded, not exact.</b> Because seat boundaries are redrawn periodically, <a href="#turnover">turnover</a> matches each seat to its dominant boundary ancestor (<a href="https://electiondata.my" target="_blank" rel="noopener">electiondata.my</a> lineage); in redelineation years, where seats split or merge, the flip count is approximate.</li>
+        <li><b>Uncontested seats and the turnout denominator.</b> Early elections had many uncontested seats (counted as won, with no <a href="#turnout">turnout</a>), and turnout uses <em>registered</em> electors — so pre-2021 turnout overstates participation among all eligible adults, before automatic registration put everyone on the roll. Turnout <em>by age</em> would need the individual voter rolls, not this corpus — see <a href="https://zachtheyek.github.io/undi-generasi/" target="_blank" rel="noopener">Undi Generasi</a> for the generational breakdown.</li>
+        <li><b>Representation is descriptive, not substantive.</b> <a href="#women">Women's</a> and <a href="#ethnicity">ethnic makeup</a> count <em>who sits</em>, not how they vote or whom they serve; ethnic makeup also reflects the electorate's own composition and where seats are drawn, not a verdict on any community.</li>
         <li><b>Coalition continuity in East Malaysia.</b> Sabah and Sarawak parties have shifted between federal coalitions repeatedly; the rename-collapsing rule handles clean successions but cannot perfectly track fluid, partial realignments.</li>
-        <li><b>Uncontested seats and the turnout denominator.</b> Early elections had many uncontested seats (counted as won, with no turnout), and turnout uses <em>registered</em> electors — so pre-2021 turnout overstates participation among all eligible adults, before automatic registration put everyone on the roll. Turnout <em>by age</em> would need the individual voter rolls, not this corpus — see <a href="https://zachtheyek.github.io/undi-generasi/" target="_blank" rel="noopener">Undi Generasi</a> for the generational breakdown.</li>
         <li><b>Federal general elections only.</b> State elections, by-elections, and the timing differences for Sabah (joined 1963) and Sarawak (first federal vote 1969) are excluded; this is a federal-parliament story, not a complete account of every ballot cast.</li>
       </ul>
       <div class="dl">
@@ -338,7 +359,7 @@ function render() {
       </div>
     </div>
     <footer>
-      Built on the <a href="https://electiondata.my" target="_blank" rel="noopener">Malaysian Election Corpus</a> by <a href="https://x.com/Thevesh" target="_blank" rel="noopener">Thevesh Thevananthan</a> (CC0), peer-reviewed in <i>Scientific Data</i> 13, 190 (2026). Not affiliated with the author. Indicators follow Laakso–Taagepera (1979), Gallagher (1991), Pedersen (1979) and Samuels–Snyder (2001).
+      Built on the <a href="https://electiondata.my" target="_blank" rel="noopener">Malaysian Election Corpus</a> by <a href="https://x.com/Thevesh" target="_blank" rel="noopener">Thevesh Thevananthan</a> (CC0), peer-reviewed in <i>Scientific Data</i> 13, 190 (2026). Not affiliated with the author. Indicators follow Laakso–Taagepera (1979), Gallagher (1991), Pedersen (1979), Samuels–Snyder (2001) and Polsby–Popper (1991).
     </footer>
   </div>`;
 

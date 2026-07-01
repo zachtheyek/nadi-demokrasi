@@ -9,9 +9,10 @@ pipelines, decisions & rationale, gotchas, and open work).
 
 **Nadi Demokrasi** — a single-page, reproducible data-essay measuring seven decades of Malaysian
 general elections with standard political-science indicators (Gallagher disproportionality,
-Samuels–Snyder malapportionment, the winner's seat bonus, winner's vote share, effective number of
-parties, multi-cornered contests, Pedersen volatility, seat turnover, marginal-seat share, turnout,
-women's representation, and ethnic makeup — twelve sections in narrative order). Vite + vanilla TS +
+Samuels–Snyder malapportionment, the winner's seat bonus, map bias (who the unequal map favours),
+Polsby–Popper district compactness, winner's vote share, effective number of parties, multi-cornered
+contests, Pedersen volatility, seat turnover, marginal-seat share, turnout, women's representation,
+and ethnic makeup — fourteen sections in narrative order). Vite + vanilla TS +
 plain CSS; **light theme**. Charts are
 hand-built inline SVG. Equations render via KaTeX. All data comes from **MECo** (the Malaysian
 Election Corpus by Thevesh Thevananthan, CC0) via the sibling [`meco-data`](https://github.com/zachtheyek/meco-data)
@@ -94,13 +95,21 @@ citation year range/date; the meta counts.
    These reflect the comparative-politics literature and rarely change; adjust wording only if the
    new data makes a sentence read wrong (e.g. the metric crosses a stated band).
 3. **Directional / trend claims** that assume the current trajectory — re-check the direction still
-   holds: malapportionment "has not gone away"; fragmentation "until {year}… a fragmented result
-   closed the gap"; multi-cornered "a straight fight … then they splintered"; marginal "long dominated
-   by safe seats … has risen sharply"; dominance "lost for good" + "from a dominant-party system to
-   competitive, coalition-by-coalition politics"; turnout "the most fiercely contested election of the
-   BN era" (tied to the peak year) and the "**despite** millions of newly-enrolled young voters"
+   holds: malapportionment "has not gone away"; **map bias "the tilt has flipped" — the `L.map_bias<0`
+   branch assumes the winner now sits in the *larger* seats; if it goes positive again the prose swaps
+   to the "still favours it" branch automatically, but re-read it**; **compactness "the latest
+   redelineation … least compact on record" — assumes the newest delimitation is the low point (it is,
+   via `cLow`); if a future redelineation is more compact, reword**; fragmentation "until {year}… a
+   fragmented result closed the gap"; multi-cornered "a straight fight … then they splintered"; marginal
+   "long dominated by safe seats … has risen sharply"; dominance "lost for good" + "from a dominant-party
+   system to competitive, coalition-by-coalition politics"; turnout "the most fiercely contested election
+   of the BN era" (tied to the peak year) and the "**despite** millions of newly-enrolled young voters"
    framing (assumes turnout *fell*); women "climbed … then eased" (assumes the recent dip). If the
    newest election reverses a trend, reword to match.
+   - **Compactness data is precomputed & committed** (`data/compactness.json` via
+     `scripts/compute_compactness.py`) — it only changes on a redelineation. After a new one, regenerate
+     it (needs the boundary GeoJSONs), else `compactness` for the new election falls back to the previous
+     delimitation.
 4. **Historical event references** — stable, almost never drift, but confirm they still read right
    next to the newest data: the 2008 "political tsunami" volatility note; "Reformasi"; "Undi18";
    "BN era"; "one-and-a-half-party system".
