@@ -32,9 +32,14 @@ with `MECO_OUT`). `public/data/` and `dist/` are generated, never committed.
 ## House rules (don't break these)
 
 - **Nothing hard-coded that can be computed.** Every figure, chart point, and derived phrase is
-  recomputed from `public/data/indicators.json` at render time (see `sections()` in `src/main.ts`),
-  so the page updates itself as elections are added. When a claim depends on the data, template it —
-  don't type the number.
+  recomputed from `public/data/indicators.json` at render time, so the page updates itself as
+  elections are added. When a claim depends on the data, template it — don't type the number.
+- **One chart engine, one set of specs — shared.** `src/chartkit.mjs` holds the chart renderer
+  (`chartSVG`) **and** the per-section headings + chart options (`buildSpecs`). Both the page
+  (`sections()` in `src/main.ts`) and the OG share-card prerenderer (`scripts/prerender.mjs`) import
+  it, so a shared-on-X card is a pixel-faithful render of the section and the two **cannot drift**.
+  `main.ts` layers only the prose (body/note/method) on top. Edit chart shapes/headings in
+  `chartkit.mjs`, prose in `main.ts` — never duplicate a spec into `prerender.mjs`.
 - **Neutrality.** Descriptive, never a partisan verdict on any party or person. Frame every metric
   as a measurement and explain the method. Caveats ship on the page, not buried.
 - **Each chart stands on its own.** Tufte rules: no gridlines, range-frame axes, a single accent
@@ -60,8 +65,11 @@ with `MECO_OUT`). `public/data/` and `dist/` are generated, never committed.
 
 ## Drift contract (READ before a drift review)
 
-When the data changes, most of `src/main.ts` self-corrects. Do **not** touch the templated layer.
-Check only the hand-written claims, each against `public/data/indicators.json`:
+When the data changes, the templated layer self-corrects. Do **not** touch it. The templated layer
+is now **`buildSpecs()` in `src/chartkit.mjs`** (headings + chart options: `now`, `nowCap`, `share`,
+series, points, callouts, reference lines) plus the derivations in `sections()`; the hand-written
+prose lives in the `prose` map in `sections()` (`src/main.ts`). Check only the hand-written claims,
+each against `public/data/indicators.json`:
 
 **Templated — leave alone:** every headline `now`, chart point, callout, peak/dip/annotation; the
 minority-win count; the two-thirds-lost year; `top_blocs` names ("three biggest blocs — …"); the
