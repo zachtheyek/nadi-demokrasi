@@ -19,13 +19,14 @@ interface Row {
   enp_votes: number; enp_seats: number; gallagher: number; malapportionment: number | null;
   volatility: number | null; turnout: number | null;
   women_pc: number; cand_per_seat: number; three_plus_pc: number; marginal_pc: number;
+  malay_pc: number; chinese_pc: number; indian_pc: number; em_bumi_pc: number;
   winner: string; winner_vote_pc: number; winner_seat_pc: number; winner_seat_bonus: number;
   top_blocs: Bloc[];
 }
 let ROWS: Row[] = [];
 
 // palette (light theme) — clay red is the single accent; teal & gold are muted context hues
-const C = { red: "#b3402f", teal: "#2f6f6b", gold: "#c08a2d", ink: "#16130f", muted: "#6b6256" };
+const C = { red: "#b3402f", teal: "#2f6f6b", gold: "#c08a2d", slate: "#4f6d7a", ink: "#16130f", muted: "#6b6256" };
 
 /* ---------- data-driven helpers (nothing about the numbers is hard-coded) ---------- */
 const last = () => ROWS[ROWS.length - 1];
@@ -320,6 +321,7 @@ function sections(): Sec[] {
   const hl = (s: string) => `<span class="hl">${s}</span>`;
   const hlt = (s: string) => `<span class="hl-t">${s}</span>`;
   const hlg = (s: string) => `<span class="hl-g">${s}</span>`;
+  const hls = (s: string) => `<span class="hl-s">${s}</span>`;
 
   return [
     /* 1 ─ the total gap */
@@ -514,6 +516,27 @@ function sections(): Sec[] {
       method: {
         eq: String.raw`w = \dfrac{W}{n}`,
         where: `<strong>W</strong> is the number of elected women MPs and <strong>n</strong> the total number of seats, so <em>w</em> is simply the share of the winning benches who are women — the single clearest check on how much Parliament resembles the electorate. Read it alongside <a href="#ethnicity">Parliament's ethnic makeup</a> below.`,
+      },
+    },
+    /* 11 ─ who the winners are, by community */
+    {
+      id: "ethnicity", h2: "Parliament's ethnic makeup", q: "Does the chamber mirror the country?",
+      now: num(L.chinese_pc) + "%",
+      nowCap: `of MPs elected in ${L.year} were ethnic Chinese — down from about ${num(F.chinese_pc)}% at independence, the chamber's sharpest ethnic shift.`,
+      share: `The ethnic makeup of Malaysia's Parliament has shifted: ethnic-Chinese MPs fell from about ${num(F.chinese_pc)}% (${F.year}) to ${num(L.chinese_pc)}% (${L.year}), while Malay MPs rose to ${num(L.malay_pc)}%.`,
+      opts: {
+        series: [
+          { label: "Chinese", color: C.red, focal: true, y: (r) => r.chinese_pc },
+          { label: "Malay", color: C.teal, y: (r) => r.malay_pc },
+          { label: "S&S Bumi", color: C.gold, y: (r) => r.em_bumi_pc },
+          { label: "Indian", color: C.slate, y: (r) => r.indian_pc },
+        ],
+        yLabel: "Ethnic makeup of MPs", fmt: (v) => num(v) + "%", yMin: 0,
+      },
+      body: `Parliament's benches have always been mostly Malay, but their exact ethnic mix has shifted. The share of ${hl("ethnic-Chinese MPs")} has fallen from about ${hl(num(F.chinese_pc) + "% in " + F.year)} to ${hl(num(L.chinese_pc) + "% in " + L.year)}, while ${hlt("Malay MPs")} rose to ${hlt(num(L.malay_pc) + "%")}. Since Sabah and Sarawak joined in the 1960s, their ${hlg("Bumiputera communities")} have held a steady share of about ${hlg(num(L.em_bumi_pc) + "%")}, and ${hls("Indian MPs")} have remained a small presence throughout. These shifts track the electorate's own composition and where seats are drawn — not a verdict on any community.`,
+      note: `This is <em>descriptive</em> representation — who sits, not how they vote or whom they serve. Read it alongside <a href="#women">women in Parliament</a> above.`,
+      method: {
+        text: `The share of elected MPs in each ethnic group the corpus records — Malay, Chinese, the Bumiputera communities of Sabah and Sarawak, and Indian. A descriptive count of who sits; hover any year to see all four at once.`,
       },
     },
   ];

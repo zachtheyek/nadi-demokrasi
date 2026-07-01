@@ -109,6 +109,11 @@ for elec, g in fed.groupby("election"):
 
     # Descriptive representation: share of elected MPs who are women.
     women_pc = 100.0 * float((g[g.won].sex == "F").sum()) / n_seats
+    # Ethnic makeup of the elected house (descriptive representation, purely a count).
+    eth = g[g.won].ethnicity.value_counts()
+    ethn = lambda *keys: 100.0 * float(sum(eth.get(k, 0) for k in keys)) / n_seats
+    malay_pc, chinese_pc, indian_pc = ethn("Malay"), ethn("Chinese"), ethn("Indian")
+    em_bumi_pc = ethn("Bumi Sabah", "Bumi Sarawak")   # East-Malaysian Bumiputera (from 1963/69)
     # Multi-cornered contests: mean candidates per seat, and share of 3+-cornered fights.
     cand_per_seat = float(st.n_candidates.mean())
     three_plus_pc = 100.0 * float((st.n_candidates >= 3).mean())
@@ -125,6 +130,8 @@ for elec, g in fed.groupby("election"):
         "volatility": (round(float(volatility), 2) if volatility is not None else None),
         "turnout": (round(turnout, 1) if not np.isnan(turnout) else None),
         "women_pc": round(women_pc, 1),
+        "malay_pc": round(malay_pc, 1), "chinese_pc": round(chinese_pc, 1),
+        "indian_pc": round(indian_pc, 1), "em_bumi_pc": round(em_bumi_pc, 1),
         "cand_per_seat": round(cand_per_seat, 2),
         "three_plus_pc": round(three_plus_pc, 1),
         "marginal_pc": round(marginal_pc, 1),

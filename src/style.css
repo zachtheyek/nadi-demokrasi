@@ -56,6 +56,7 @@ section.ind:first-of-type { border-top: 0; }
 .hl { color: var(--accent); font-weight: 600; }
 .hl-t { color: var(--accent2); font-weight: 600; }
 .hl-g { color: var(--gold); font-weight: 600; }
+.hl-s { color: #4f6d7a; font-weight: 600; }
 
 .note { font-size: 15px; color: var(--muted); line-height: 1.55; margin-top: 14px; padding-left: 13px; border-left: 2px solid var(--line); }
 .note em { font-style: italic; }
