@@ -1,0 +1,149 @@
+name: Claude Drift Review
+
+# When the MECo foundation gains new data (a general election, or an upstream correction), the
+# dashboard's NUMBERS, CHARTS and derived prose recompute themselves — but a handful of
+# hand-written editorial sentences (event names, "world-standard" claims, qualitative framing)
+# can go stale. This weekly job detects that the data moved since the prose was last reconciled
+# (the tracked DATA_VERSION stamp), regenerates the indicators, and asks Claude to reconcile the
+# hand-written prose in src/main.ts against the new figures, then opens a PR. Merging that PR is
+# what publishes the new data (deploy.yml runs on push) — so a human always reviews before a new
+# election goes live. In steady state (no new data) this is a no-op.
+#
+# Auth: uses the ANTHROPIC_API_KEY repo secret (see README "Auto-refresh & drift review"). To use
+# a Claude subscription instead, swap the `anthropic_api_key` line for
+# `claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`.
+on:
+  schedule:
+    - cron: "52 20 * * 0"   # Sundays 20:52 UTC, after meco-data's 20:07 auto-refresh
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  drift-review:
+    runs-on: ubuntu-latest
+    # Reconciling one file of prose against a fresh indicators.json is quick; cap it so a stray
+    # rabbit hole can't run away (refine if data shows otherwise).
+    timeout-minutes: 20
+    steps:
+      - name: Checkout dashboard
+        uses: actions/checkout@v4
+
+      - name: Checkout MECo foundation
+        uses: actions/checkout@v4
+        with:
+          repository: zachtheyek/meco-data
+          path: meco-data
+
+      # Only proceed when the foundation actually moved since the prose was last reconciled
+      # (tracked in DATA_VERSION), AND no open drift PR already covers this exact MECo commit.
+      - name: Detect data change and dedup
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          MECO_SHA="$(git -C meco-data rev-parse HEAD)"
+          RECONCILED="$(tr -d '[:space:]' < DATA_VERSION)"
+          echo "meco_sha=$MECO_SHA" >> "$GITHUB_OUTPUT"
+          echo "meco_short=${MECO_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          if [ "$MECO_SHA" = "$RECONCILED" ]; then
+            echo "MECo data unchanged since last reconciliation ($MECO_SHA) — nothing to do."
+            echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          MARKER="<!-- nadi-drift meco=$MECO_SHA -->"
+          if gh pr list --state open --limit 100 --json body --jq '.[].body' | grep -qF "$MARKER"; then
+            echo "An open drift PR for $MECO_SHA already exists — skipping."
+            echo "go=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "MECo data moved ($RECONCILED -> $MECO_SHA) — running drift review."
+          echo "go=true" >> "$GITHUB_OUTPUT"
+
+      - name: Regenerate indicators from the new data
+        if: steps.guard.outputs.go == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compute indicators
+        if: steps.guard.outputs.go == 'true'
+        env:
+          MECO_OUT: ${{ github.workspace }}/meco-data/out
+        run: |
+          pip install pandas pyarrow numpy
+          python scripts/compute_indicators.py
+
+      - name: Configure git identity
+        if: steps.guard.outputs.go == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run Claude drift reconciliation
+        if: steps.guard.outputs.go == 'true'
+        uses: anthropics/claude-code-action@58dbe8ed6879f0d3b02ac295b20d5fdfe7733e0c # v1.0.85
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            ## Role
+            You maintain the editorial copy of "Nadi Demokrasi", a reproducible Malaysian-election
+            indicators dashboard. The underlying data (the MECo foundation) has just gained new
+            figures. The dashboard's numbers, charts, and *derived* prose already update themselves;
+            your job is to reconcile the small amount of HAND-WRITTEN editorial copy that does not,
+            then open a PR. A human reviews and merges it — merging is what publishes the new data.
+
+            ## Context
+            REPO: ${{ github.repository }}
+            NEW MECo COMMIT: ${{ steps.guard.outputs.meco_sha }}
+            The freshly-computed figures are in `public/data/indicators.json` (already regenerated
+            from the new data in a prior step — read it for the current numbers). The prose lives in
+            `src/main.ts` (the `sections()` function) and `README.md`.
+
+            ## Task
+            1. Read `CLAUDE.md` in full — especially the **Drift contract** section. It lists exactly
+               which hand-written claims can go stale and how to check each against the data. Follow
+               it; it is the source of truth for this job.
+            2. Read `public/data/indicators.json` (the new figures) and `src/main.ts`. For each item
+               in the drift contract, decide whether the current wording is still true under the new
+               numbers. Most prose is templated and needs no change — touch only what actually
+               contradicts the data or reads wrong for the newest election.
+            3. Make the minimal edits needed, in the house voice (see CLAUDE.md → "House rules"):
+               neutral and descriptive, colored highlight spans (not bold), credit intact, equations
+               still numbered sequentially, every chart still standing on its own. Do NOT hand-code a
+               number that the code already computes — prefer widening a template over hard-coding.
+            4. Update `README.md` if a stated figure there is now wrong.
+            5. Set the reconciliation stamp: write the new MECo commit to `DATA_VERSION`
+               (`echo ${{ steps.guard.outputs.meco_sha }} > DATA_VERSION`). Do this even if no prose
+               changed — the PR must always bump it so merging republishes the new data.
+            6. Verify the build still compiles: `npm ci && npm run build` (this also regenerates the
+               OG card). Fix any error you introduced.
+            7. Open ONE pull request from a new branch `drift/meco-${{ steps.guard.outputs.meco_short }}`:
+               - Commit your edits (git add only: `src/main.ts`, `README.md`, `DATA_VERSION`, and any
+                 other prose you changed — never `public/data`, `dist`, `node_modules`, or `meco-data`).
+               - `gh pr create` with a clear title, and a body whose FIRST line is the hidden dedup
+                 marker `<!-- nadi-drift meco=${{ steps.guard.outputs.meco_sha }} -->`, then a short
+                 summary: which drift-contract items you checked, what you changed and why (or
+                 "no prose drift — stamp bump only"), and a reminder that merging publishes the new data.
+
+            ## Available tools
+            - `Read`, `Grep`, `Glob` to inspect CLAUDE.md, src/main.ts, README.md, public/data/indicators.json
+            - `Edit` to make the prose edits
+            - `Bash(npm ci:*)`, `Bash(npm run build:*)` to verify the build compiles
+            - `Bash(git checkout:*)`, `Bash(git add:*)`, `Bash(git commit:*)`, `Bash(git push:*)` to branch and commit
+            - `Bash(echo:*)` to write the DATA_VERSION stamp
+            - `Bash(gh pr create:*)`, `Bash(gh pr list:*)` to open the PR
+
+            ## Guidelines
+            - Minimal, surgical edits — reconcile only genuinely stale editorial claims; leave templated
+              copy and correct claims untouched. When in doubt, prefer a small note in the PR body over
+              an unrequested rewrite.
+            - Never change chart logic, equations' math, the data pipeline, or computed values — prose only.
+            - Neutrality is non-negotiable: descriptive, never a partisan verdict. Keep Thevesh's credit.
+            - Always open exactly one PR, always bump DATA_VERSION, always include the dedup marker.
+            - Reference CLAUDE.md for anything unspecified. Do nothing outside this reconciliation.
+
+          claude_args: |
+            --allowedTools "Read,Grep,Glob,Edit,Bash(npm ci:*),Bash(npm run build:*),Bash(git checkout:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(echo:*),Bash(gh pr create:*),Bash(gh pr list:*)"
+            --model opus

@@ -21,11 +21,14 @@ Output: public/data/indicators.json, public/data/indicators.csv
 """
 from __future__ import annotations
 import json
+import os
 from pathlib import Path
 import numpy as np
 import pandas as pd
 
-FOUND = Path("../meco-data/out")
+# Path to the MECo foundation's `out/` dir. Defaults to the co-located sibling checkout used
+# locally and in deploy.yml; override with MECO_OUT when the layout differs (e.g. drift-review CI).
+FOUND = Path(os.environ.get("MECO_OUT", "../meco-data/out"))
 OUT = Path("public/data")
 OUT.mkdir(parents=True, exist_ok=True)
 

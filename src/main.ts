@@ -88,24 +88,35 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
   const clampY = (v: number) => Math.max(plotTop + 8, Math.min(plotBot - 4, v));
 
   let g = "";
+  // every text label registers its box here so callouts can be placed clear of all of them
+  type Box = { x0: number; x1: number; y0: number; y1: number };
+  const placed: Box[] = [];
+  const fits = (b: Box) => !placed.some((p) => b.x0 < p.x1 && b.x1 > p.x0 && b.y0 < p.y1 && b.y1 > p.y0);
+  const reserveL = (cx: number, w: number, cy: number, anchor: "start" | "middle" | "end") => {
+    const x0 = anchor === "end" ? cx - w : anchor === "middle" ? cx - w / 2 : cx;
+    placed.push({ x0, x1: x0 + w, y0: cy - 10, y1: cy + 3 });
+  };
 
   // shaded period bands (faintest layer)
   (o.xBands || []).forEach((b) => {
     const x0 = x(Math.max(b.from, xMin)), x1 = x(Math.min(b.to, xMax));
     g += `<rect class="xband" x="${x0.toFixed(1)}" y="${plotTop}" width="${(x1 - x0).toFixed(1)}" height="${(plotBot - plotTop).toFixed(1)}"/>`;
-    if (b.label) g += `<text class="bandlab" x="${((x0 + x1) / 2).toFixed(1)}" y="${(plotTop - 8).toFixed(1)}" text-anchor="middle">${b.label}</text>`;
+    if (b.label) { const lx = (x0 + x1) / 2, ly = plotTop - 8; g += `<text class="bandlab" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle">${b.label}</text>`; reserveL(lx, b.label.length * 5.9, ly, "middle"); }
   });
 
-  // horizontal reference lines / bands — labels sit on the LEFT, clear of the right-side callouts
+  // horizontal reference lines / bands — line labels sit BELOW the line (clear of the data above it)
   (o.yRefs || []).forEach((r) => {
     if (r.to != null) {
       const ya = y(r.at), yb = y(r.to);
       g += `<rect class="yband" x="${m.l}" y="${Math.min(ya, yb).toFixed(1)}" width="${(plotRight - m.l).toFixed(1)}" height="${Math.abs(ya - yb).toFixed(1)}"/>`;
-      g += `<text class="reflab" x="${(m.l + 5).toFixed(1)}" y="${((ya + yb) / 2 + 3).toFixed(1)}" text-anchor="start">${r.label}</text>`;
+      const ly = (ya + yb) / 2 + 3;
+      g += `<text class="reflab" x="${(m.l + 5).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="start">${r.label}</text>`;
+      reserveL(m.l + 5, r.label.length * 5.3, ly, "start");
     } else {
-      const yr = y(r.at);
+      const yr = y(r.at), ly = yr + 14;
       g += `<line class="refline" x1="${m.l}" y1="${yr.toFixed(1)}" x2="${plotRight.toFixed(1)}" y2="${yr.toFixed(1)}"/>`;
-      g += `<text class="reflab" x="${(m.l + 5).toFixed(1)}" y="${(yr - 5).toFixed(1)}" text-anchor="start">${r.label}</text>`;
+      g += `<text class="reflab" x="${(m.l + 5).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="start">${r.label}</text>`;
+      reserveL(m.l + 5, r.label.length * 5.3, ly, "start");
     }
   });
 
@@ -148,21 +159,20 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
     let ly = clampY(e.yPt); if (ly - prev < 14) ly = prev + 14; prev = ly;
     if (Math.abs(ly - e.yPt) > 2) g += `<line class="leader" x1="${(plotRight + 3).toFixed(1)}" y1="${e.yPt.toFixed(1)}" x2="${(plotRight + 7).toFixed(1)}" y2="${ly.toFixed(1)}"/>`;
     g += `<text class="endname" x="${(plotRight + 9).toFixed(1)}" y="${(ly + 3.5).toFixed(1)}" fill="${e.color}">${e.label}</text>`;
+    reserveL(plotRight + 9, e.label.length * 6.2, ly + 3.5, "start");
   });
 
-  // callout label boxes get stacked so nothing overlaps
-  const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
-  const fits = (b: { x0: number; x1: number; y0: number; y1: number }) => !placed.some((p) => b.x0 < p.x1 && b.x1 > p.x0 && b.y0 < p.y1 && b.y1 > p.y0);
-
-  // gap connector between two series at a given year (e.g. the peak seat bonus) — tag above the top line
+  // gap connector between two series at a given year (e.g. the peak seat bonus) — tag well above the top line
   if (o.gap && o.series.length === 2) {
     const r = at(o.gap.year); if (r) {
       const va = o.series[0].y(r)!, vb = o.series[1].y(r)!;
       const gx = x(o.gap.year), ya = y(va), yb = y(vb);
       g += `<line class="gapconn" x1="${gx.toFixed(1)}" y1="${ya.toFixed(1)}" x2="${gx.toFixed(1)}" y2="${yb.toFixed(1)}"/>`;
-      const ty = clampY(Math.min(ya, yb) - 6);
+      let ty = clampY(Math.min(ya, yb) - 11);
+      const gw = o.gap.label.length * 6.4;
+      for (let k = 0; k < 5; k++) { if (fits({ x0: gx - gw / 2, x1: gx + gw / 2, y0: ty - 10, y1: ty + 3 })) break; ty = clampY(ty - 12); }
       g += `<text class="gaptag" x="${(gx).toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle">${o.gap.label}</text>`;
-      placed.push({ x0: gx - o.gap.label.length * 3.2, x1: gx + o.gap.label.length * 3.2, y0: ty - 11, y1: ty + 2 });
+      reserveL(gx, gw, ty, "middle");
     }
   }
 
@@ -173,20 +183,21 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
     const atRight = p.year === xMax;
     const anchor = atRight ? "end" : "middle";
     const tx = atRight ? cx - 7 : cx;
+    const tag = `${yy(p.year)} (${p.tag})`;
     let place = p.place || "above";
     if (place === "above" && cy - 30 < plotTop) place = "below";
     if (place === "below" && cy + 30 > plotBot) place = "above";
-    const w = Math.max(o.fmt(p.value).length, (yy(p.year) + " " + p.tag).length) * 5.9;
+    const w = Math.max(o.fmt(p.value).length * 6.4, tag.length * 5.7);
     const x0 = atRight ? tx - w : tx - w / 2, x1 = atRight ? tx : tx + w / 2;
     let vY = place === "above" ? cy - 26 : cy + 15;
-    for (let k = 0; k < 6; k++) { if (fits({ x0, x1, y0: vY - 11, y1: vY + 13 })) break; vY += place === "above" ? -13 : 13; }
+    for (let k = 0; k < 8; k++) { if (fits({ x0, x1, y0: vY - 11, y1: vY + 13 })) break; vY += place === "above" ? -13 : 13; }
     vY = clampY(vY);
     const sY = vY + 12;
     placed.push({ x0, x1, y0: vY - 11, y1: sY + 3 });
     g += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${s.color}"/>`;
     g += `<line class="leader" x1="${cx.toFixed(1)}" y1="${(cy + (place === "above" ? -5 : 5)).toFixed(1)}" x2="${tx.toFixed(1)}" y2="${(place === "above" ? sY + 2 : vY - 10).toFixed(1)}"/>`;
     g += `<text class="cval" x="${tx.toFixed(1)}" y="${vY.toFixed(1)}" text-anchor="${anchor}" fill="${s.color}">${o.fmt(p.value)}</text>`;
-    g += `<text class="ctag" x="${tx.toFixed(1)}" y="${sY.toFixed(1)}" text-anchor="${anchor}">${yy(p.year)} ${p.tag}</text>`;
+    g += `<text class="ctag" x="${tx.toFixed(1)}" y="${sY.toFixed(1)}" text-anchor="${anchor}">${tag}</text>`;
   });
 
   host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${o.yLabel}">${g}</svg>`;
@@ -219,10 +230,20 @@ function sections(): Sec[] {
   // exemplar for the chart: the most recent clear case (seat majority ≥ 55% on a vote minority)
   const clearMin = minorityWins.filter((r) => r.winner_seat_pc >= 55);
   const minExemplar = (clearMin.length ? clearMin : minorityWins).slice(-1)[0];
+  // derived seat-bonus wording (so it stays true when the latest election changes)
+  const bNow = L.winner_seat_bonus;
+  const bonusCap = bNow < -0.5 ? "the winner now takes a smaller share of seats than of votes."
+    : Math.abs(bNow) <= 2 ? "the bonus has all but vanished." : bNow > 0 ? "the winner still gains from the system." : "the bonus has vanished.";
+  const firstNeg = ROWS.filter((r) => r.winner_seat_bonus < 0)[0];
+  const isFirstNeg = !!firstNeg && firstNeg.year === L.year;
+  const hung = !L.top_blocs.some((b) => b.seat_pc > 50);
   const enpPeak = arg("enp_seats", 1), enpLow = arg("enp_seats", -1);
   const volRanked = ROWS.filter((r) => r.volatility != null).sort((a, b) => (b.volatility! - a.volatility!));
   const volTop = volRanked.slice(0, 3);
   const volDips = volRanked.slice(-2);   // the two calmest elections
+  // calmest election during single-coalition dominance → the "one-coalition calm" band + its decade
+  const domCalm = ROWS.filter((r) => r.volatility != null && r.winner_vote_pc >= 50).sort((a, b) => a.volatility! - b.volatility!)[0];
+  const decadePhrase = (yr: number) => { const d = Math.floor(yr / 10) * 10, u = yr % 10; return `${u < 4 ? "early" : u < 7 ? "mid" : "late"} ${d}s`; };
   const r2008 = at(2008);
   const tPeak = arg("turnout", 1), tLow = arg("turnout", -1);
   const tPrev = ROWS[ROWS.length - 2];
@@ -282,7 +303,7 @@ function sections(): Sec[] {
     {
       id: "seat-bonus", h2: "The winner's bonus", q: "How much does the system inflate the largest bloc?",
       now: (L.winner_seat_bonus >= 0 ? "+" : "") + num(L.winner_seat_bonus, 1),
-      nowCap: `percentage-point gap between the winner's seat share and vote share in ${L.year} — the bonus has vanished.`,
+      nowCap: `percentage-point gap between the winner's seat share and vote share in ${L.year} — ${bonusCap}`,
       share: `First-past-the-post once handed Malaysia's election winner up to +${num(bPeak.winner_seat_bonus, 1)} points of seat bonus (${bPeak.year}). By ${L.year} it had vanished (${num(L.winner_seat_bonus, 1)}).`,
       opts: {
         series: [
@@ -292,9 +313,9 @@ function sections(): Sec[] {
         yLabel: "Winner's seat share vs vote share", fmt: (v) => num(v) + "%", yMin: 0, yMax: 100,
         gapFill: true, gap: { year: bPeak.year, label: "+" + num(bPeak.winner_seat_bonus, 1) + "pp bonus" },
         yRefs: [{ at: 50, label: "majority" }],
-        points: minExemplar ? [{ year: minExemplar.year, value: minExemplar.winner_seat_pc, tag: "on " + num(minExemplar.winner_vote_pc) + "% of votes", place: "below" }] : [],
+        points: minExemplar ? [{ year: minExemplar.year, value: minExemplar.winner_seat_pc, tag: "won on " + num(minExemplar.winner_vote_pc) + "%", place: "below" }] : [],
       },
-      body: `The gap between the winner's seats (red) and votes (teal) is the bonus first-past-the-post hands the largest bloc. It peaked at ${hl("+" + num(bPeak.winner_seat_bonus, 1) + " points in " + bPeak.year)}, when ${bPeak.winner} turned ${num(bPeak.winner_vote_pc)}% of votes into ${num(bPeak.winner_seat_pc)}% of seats.${minRecent ? ` On ${minorityWins.length === 1 ? "one occasion" : minorityWins.length + " occasions"} the largest bloc even won a majority of seats on a ${hlt("minority of the vote")} — most recently in ${minRecent}.` : ""} By ${hl(String(L.year))} the bonus had vanished (${hl(num(L.winner_seat_bonus, 1))}): for the first time, the largest bloc held a smaller share of seats than of votes, in a hung parliament.`,
+      body: `The gap between the winner's seats (red) and votes (teal) is the bonus first-past-the-post hands the largest bloc. It peaked at ${hl("+" + num(bPeak.winner_seat_bonus, 1) + " points in " + bPeak.year)}, when ${bPeak.winner} turned ${num(bPeak.winner_vote_pc)}% of votes into ${num(bPeak.winner_seat_pc)}% of seats.${minRecent ? ` On ${minorityWins.length === 1 ? "one occasion" : minorityWins.length + " occasions"} the largest bloc even won a majority of seats on a ${hlt("minority of the vote")} — most recently in ${minRecent}.` : ""} By ${hl(String(L.year))} ${bNow < -0.5 ? `it had vanished (${hl(num(bNow, 1))})` : Math.abs(bNow) <= 2 ? `it had all but vanished (${hl(num(bNow, 1))})` : `it stood at ${hl(num(bNow, 1))}`}${isFirstNeg ? `: for the first time, the largest bloc held a smaller share of seats than of votes` : ""}${hung ? `, in a hung parliament` : ""}.`,
       method: {
         eq: String.raw`B = s_w - v_w`,
         where: `<strong>s<sub>w</sub></strong> and <strong>v<sub>w</sub></strong> are the winning bloc's share of seats and of the valid vote (%). A positive <em>B</em> means the system magnified the leader into a bigger parliamentary presence than its votes alone would justify; a negative <em>B</em> means it under-rewarded them.`,
@@ -335,7 +356,7 @@ function sections(): Sec[] {
         yLabel: "Effective number of parties", fmt: (v) => num(v, 1), yMin: 1,
         points: [{ year: enpLow.year, value: enpLow.enp_seats, tag: "one-party low", place: "below" }, { year: enpPeak.year, value: enpPeak.enp_seats, tag: "record" }],
       },
-      body: `The effective number of parties weights each bloc by its size, so a few dominant blocs count for less than many even ones. Malaysia spent decades as a ${hlt("one-and-a-half-party system")} — about ${num(F.enp_votes, 1)} effective parties by votes in ${F.year}, bottoming at ${num(enpLow.enp_seats, 1)} in parliament in ${enpLow.year}. It has since climbed to ${hl(num(enpPeak.enp_seats, 1) + " by " + enpPeak.year)}, a genuine three-way contest between its three biggest blocs — ${big3.map((b) => hlt(b.label)).join(", ").replace(/, ([^,]*)$/, " and $1")}. For decades the seats line sat below the votes line — first-past-the-post squeezing smaller blocs out of parliament — until ${enpPeak.year}, when a fragmented result closed the gap.`,
+      body: `The effective number of parties weights each bloc by its size, so a few dominant blocs count for less than many even ones. Malaysia spent decades as a ${hlt("one-and-a-half-party system")} — about ${num(F.enp_votes, 1)} effective parties by votes in ${F.year}, bottoming at ${num(enpLow.enp_seats, 1)} in parliament in ${enpLow.year}. It has since climbed to ${hl(num(enpPeak.enp_seats, 1) + " by " + enpPeak.year)}, a genuine multi-way contest between its three biggest blocs — ${big3.map((b) => hlt(b.label)).join(", ").replace(/, ([^,]*)$/, " and $1")}. For decades the seats line sat below the votes line — first-past-the-post squeezing smaller blocs out of parliament — until ${enpPeak.year}, when a fragmented result closed the gap.`,
       method: {
         eq: String.raw`N = \dfrac{1}{\sum_i p_i^{\,2}}`,
         where: `<strong>p<sub>i</sub></strong> is bloc <em>i</em>'s share — of votes for the votes line, of seats for the seats line. Two equally-sized blocs give N = 2; one dominant bloc pulls N toward 1. It is the Laakso–Taagepera index, the standard count of "parties that matter".`,
@@ -350,13 +371,13 @@ function sections(): Sec[] {
       opts: {
         series: [{ label: "Pedersen", color: C.teal, focal: true, y: (r) => r.volatility }],
         yLabel: "Electoral volatility", fmt: (v) => num(v),
-        xBands: [{ from: 1980, to: 1984, label: "one-coalition calm" }],
+        xBands: domCalm ? [{ from: domCalm.year - 2, to: domCalm.year + 2, label: "one-coalition calm" }] : [],
         points: [
           ...volTop.map((r) => ({ year: r.year, value: r.volatility!, tag: "peak" })),
           ...volDips.map((r) => ({ year: r.year, value: r.volatility!, tag: "low", place: "below" as const })),
         ],
       },
-      body: `Pedersen volatility sums how much each bloc's vote share shifts from one election to the next. The largest realignments by this measure came in ${hl(volTop.map((r) => r.year).sort((a, b) => a - b).join(", "))} — each a wholesale redrawing of who voted for whom. The calm stretches between, such as the ${hlt("early 1980s")}, mark periods of entrenched one-coalition dominance.`,
+      body: `Pedersen volatility sums how much each bloc's vote share shifts from one election to the next. The largest realignments by this measure came in ${hl(volTop.map((r) => r.year).sort((a, b) => a - b).join(", "))} — each a wholesale redrawing of who voted for whom. The calm stretches between, such as the ${hlt(decadePhrase(domCalm.year))}, mark periods of entrenched one-coalition dominance.`,
       note: r2008 ? `A caution on reading this chart: the ${r2008.year} "political tsunami" — when the ruling coalition lost its two-thirds majority — barely registers here (${num(r2008.volatility ?? 0)}). That shock was about <em>seats</em>, not vote share: BN still won ${num(r2008.winner_vote_pc)}% of the vote, so relatively little support actually moved between blocs. Vote volatility and seat change can tell very different stories.` : undefined,
       method: {
         eq: String.raw`V = \tfrac{1}{2} \textstyle\sum_i \lvert v_{i,t} - v_{i,t-1} \rvert`,
