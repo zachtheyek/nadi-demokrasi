@@ -17,7 +17,7 @@ interface Bloc { label: string; seats: number; seat_pc: number; }
 interface Row {
   election: string; year: number; n_seats: number; n_blocs: number;
   enp_votes: number; enp_seats: number; gallagher: number; malapportionment: number | null;
-  volatility: number | null; turnout: number | null;
+  volatility: number | null; turnover: number | null; turnout: number | null;
   women_pc: number; cand_per_seat: number; three_plus_pc: number; marginal_pc: number;
   malay_pc: number; chinese_pc: number; indian_pc: number; em_bumi_pc: number;
   winner: string; winner_vote_pc: number; winner_seat_pc: number; winner_seat_bonus: number;
@@ -317,6 +317,7 @@ function sections(): Sec[] {
   const candLow = arg("cand_per_seat", -1), candPeak = arg("cand_per_seat", 1);
   const margPeak = arg("marginal_pc", 1);
   const wPeak = arg("women_pc", 1);
+  const toPeak = arg("turnover", 1), toLow = arg("turnover", -1);
 
   const hl = (s: string) => `<span class="hl">${s}</span>`;
   const hlt = (s: string) => `<span class="hl-t">${s}</span>`;
@@ -464,7 +465,26 @@ function sections(): Sec[] {
         where: `<strong>v<sub>i,t</sub></strong> is bloc <em>i</em>'s vote share at election <em>t</em>. Blocs are matched across elections with pure renames collapsed (PERIKATAN→BN, BA→PR→PH), so relabelling is not counted as change — but genuine splits and mergers are. The first election has no prior to compare against, so its value is null.`,
       },
     },
-    /* 8 ─ how close the contests are */
+    /* 8 ─ how many seats change hands */
+    {
+      id: "turnover", h2: "Seats changing hands", q: "How many seats flip between elections?",
+      now: num(L.turnover ?? 0) + "%",
+      nowCap: `of seats changed which bloc holds them in ${L.year} — the highest churn on record, more than half the House.`,
+      share: `${num(L.turnover ?? 0)}% of Malaysian seats changed hands in ${L.year} — the highest turnover on record, as Perikatan Nasional surged and Barisan Nasional collapsed.`,
+      opts: {
+        series: [{ label: "Seats flipped", color: C.red, focal: true, y: (r) => r.turnover }],
+        yLabel: "Share of seats that changed bloc", fmt: (v) => num(v) + "%", yMin: 0,
+        xLines: at(2008) ? [{ year: 2008, label: `${yy(2008)} tsunami` }] : [],
+        points: [{ year: toLow.year, value: toLow.turnover ?? 0, tag: "quietest", place: "below" }, { year: toPeak.year, value: toPeak.turnover ?? 0, tag: "record" }],
+      },
+      body: `A seat "flips" when a different coalition wins it. Because seat boundaries are redrawn every so often, each seat is threaded through history by its electoral lineage. Turnover peaked at ${hl(num(toPeak.turnover ?? 0) + "% in " + toPeak.year)} — more than half the House changed hands as ${hlt("PN surged")} and ${hlt("BN collapsed")}. Tellingly, the ${hl(num((at(2008)?.turnover) ?? 0) + "% turnover of 2008")} dwarfs that year's modest ${hlt("vote volatility")}: seats can change hands without much of the vote actually moving.`,
+      note: `Seats are threaded across delimitations by <a href="#malapportionment">boundary-based lineage</a>; where a redrawing split or merged seats, the flip is measured against the dominant ancestor, so turnover in redelineation years is approximate. Read it alongside <a href="#volatility">volatility</a> above — vote movement and seat movement are not the same.`,
+      method: {
+        eq: String.raw`F = \dfrac{\lvert\{\, i : b_i^{\,t} \ne b_i^{\,t-1} \,\}\rvert}{n}`,
+        where: `<strong>b<sub>i</sub><sup>t</sup></strong> is the winning bloc of seat <em>i</em> at election <em>t</em> (renames collapsed, so a rebrand is not a flip), and <strong>n</strong> the seats present at both elections. Seats are matched across boundary changes by their lineage, so the count threads through Malaysia's redelineations.`,
+      },
+    },
+    /* 9 ─ how close the contests are */
     {
       id: "marginal", h2: "Marginal seats", q: "How close are the contests?",
       now: num(L.marginal_pc, 1) + "%",

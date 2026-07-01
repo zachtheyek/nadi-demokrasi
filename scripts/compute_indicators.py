@@ -62,6 +62,32 @@ def bloc_canon(uid):
         return "coal:" + canon(c_ren, uid[5:])
     return "party:" + canon(p_ren, uid[5:])
 
+# --- Seat turnover: share of seats whose winning bloc changed vs the previous GE ----------
+# Seat identity is NOT stable across delimitations, so we thread each current seat through
+# history by boundary-based lineage (electiondata.my). For each current seat (slug) and each
+# past GE, take the dominant ancestor contest's winning bloc (canonicalised so pure renames
+# aren't counted as a flip), then compare consecutive elections over the seats present in both.
+lineage = pd.read_parquet(FOUND / "seat_lineage.parquet")
+fedc_all = stats[(stats.seat_type == "federal") & stats.election.str.startswith("GE-")].copy()
+fedc_all["date"] = fedc_all["date"].astype(str)
+lineage = lineage.assign(date=lineage["date"].astype(str))
+cur = lineage.merge(fedc_all, on=["date", "state", "seat"], how="inner")
+def _win_bloc(cu, pu):
+    return ("coal:" + canon(c_ren, cu)) if (pd.notna(cu) and cu != "000-ALONE") else ("party:" + canon(p_ren, pu))
+cur["wbloc"] = [_win_bloc(cu, pu) for cu, pu in zip(cur.win_coalition_uid, cur.win_party_uid)]
+cur = cur.sort_values("votes_valid", ascending=False).drop_duplicates(["slug", "date"])  # dominant ancestor
+by_date = {d: dict(zip(g.slug, g.wbloc)) for d, g in cur.groupby("date")}
+elec_date = fedc_all.groupby("election").date.first().sort_values()
+turnover_by_year, prev_d = {}, None
+for elec, d in elec_date.items():
+    if prev_d is not None and d in by_date and prev_d in by_date:
+        now_m, prev_m = by_date[d], by_date[prev_d]
+        common = set(now_m) & set(prev_m)
+        if common:
+            flips = sum(1 for s in common if now_m[s] != prev_m[s])
+            turnover_by_year[int(d[:4])] = round(100.0 * flips / len(common), 1)
+    prev_d = d
+
 rows = []
 prev_vote = None  # dict canon_uid -> vote share (fraction) of previous election
 for elec, g in fed.groupby("election"):
@@ -128,6 +154,7 @@ for elec, g in fed.groupby("election"):
         "gallagher": round(float(gallagher), 2),
         "malapportionment": (round(malapp, 2) if malapp is not None else None),
         "volatility": (round(float(volatility), 2) if volatility is not None else None),
+        "turnover": turnover_by_year.get(year),
         "turnout": (round(turnout, 1) if not np.isnan(turnout) else None),
         "women_pc": round(women_pc, 1),
         "malay_pc": round(malay_pc, 1), "chinese_pc": round(chinese_pc, 1),
