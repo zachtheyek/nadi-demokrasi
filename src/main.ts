@@ -63,14 +63,15 @@ function showToast(msg: string) { toast.textContent = msg; toast.classList.add("
    lines/bands for meaningful thresholds, and faint shaded regions for named periods. */
 interface Series { label: string; color: string; focal?: boolean; y: (r: Row) => number | null; }
 interface PointC { year: number; value: number; tag: string; place?: "above" | "below" | "left" | "right"; }
-interface YRef { at: number; to?: number; label: string; }
+interface YRef { at: number; to?: number; label: string; side?: "left" | "right"; }
 interface XBand { from: number; to: number; label?: string; }
+interface XLine { year: number; label: string; }
 interface GapC { year: number; label: string; }
 interface ChartOpts {
   series: Series[];
   yMin?: number; yMax?: number; yLabel: string;
   fmt: (v: number) => string; unit?: string;
-  points?: PointC[]; yRefs?: YRef[]; xBands?: XBand[];
+  points?: PointC[]; yRefs?: YRef[]; xBands?: XBand[]; xLines?: XLine[];
   gapFill?: boolean; gap?: GapC;
 }
 
@@ -107,20 +108,30 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
     if (b.label) { const lx = (x0 + x1) / 2, ly = plotTop - 8; g += `<text class="bandlab" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle">${b.label}</text>`; reserveL(lx, b.label.length * 5.9, ly, "middle"); }
   });
 
-  // horizontal reference lines / bands — line labels sit BELOW the line (clear of the data above it)
+  // horizontal reference lines / bands — line labels sit BELOW the line, left by default (right on request)
   (o.yRefs || []).forEach((r) => {
+    const right = r.side === "right";
+    const lx = right ? plotRight - 4 : m.l + 5, anchor = right ? "end" : "start";
     if (r.to != null) {
       const ya = y(r.at), yb = y(r.to);
       g += `<rect class="yband" x="${m.l}" y="${Math.min(ya, yb).toFixed(1)}" width="${(plotRight - m.l).toFixed(1)}" height="${Math.abs(ya - yb).toFixed(1)}"/>`;
       const ly = (ya + yb) / 2 + 3;
-      g += `<text class="reflab" x="${(m.l + 5).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="start">${r.label}</text>`;
-      reserveL(m.l + 5, r.label.length * 5.3, ly, "start");
+      g += `<text class="reflab" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}">${r.label}</text>`;
+      reserveL(lx, r.label.length * 5.3, ly, anchor);
     } else {
       const yr = y(r.at), ly = yr + 14;
       g += `<line class="refline" x1="${m.l}" y1="${yr.toFixed(1)}" x2="${plotRight.toFixed(1)}" y2="${yr.toFixed(1)}"/>`;
-      g += `<text class="reflab" x="${(m.l + 5).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="start">${r.label}</text>`;
-      reserveL(m.l + 5, r.label.length * 5.3, ly, "start");
+      g += `<text class="reflab" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}">${r.label}</text>`;
+      reserveL(lx, r.label.length * 5.3, ly, anchor);
     }
+  });
+
+  // vertical reference lines (e.g. a named event year) — dashed, label at the top
+  (o.xLines || []).forEach((xl) => {
+    const vx = x(xl.year);
+    g += `<line class="xline" x1="${vx.toFixed(1)}" y1="${(plotTop + 4).toFixed(1)}" x2="${vx.toFixed(1)}" y2="${plotBot.toFixed(1)}"/>`;
+    g += `<text class="xlinelab" x="${vx.toFixed(1)}" y="${(plotTop - 2).toFixed(1)}" text-anchor="middle">${xl.label}</text>`;
+    reserveL(vx, xl.label.length * 5.5, plotTop - 2, "middle");
   });
 
   // range-frame axes (thin, only where data lives) + min/max y ticks
@@ -165,17 +176,20 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
     reserveL(plotRight + 9, e.label.length * 6.2, ly + 3.5, "start");
   });
 
-  // gap connector between two series at a given year (e.g. the peak seat bonus) — tag well above the top line
+  // gap connector between two series at a given year (e.g. the peak seat bonus) — two-line tag
+  // ("+27.2pp bonus" over the year) sitting well above the top line
   if (o.gap && o.series.length === 2) {
     const r = at(o.gap.year); if (r) {
       const va = o.series[0].y(r)!, vb = o.series[1].y(r)!;
       const gx = x(o.gap.year), ya = y(va), yb = y(vb);
       g += `<line class="gapconn" x1="${gx.toFixed(1)}" y1="${ya.toFixed(1)}" x2="${gx.toFixed(1)}" y2="${yb.toFixed(1)}"/>`;
-      let ty = clampY(Math.min(ya, yb) - 11);
-      const gw = o.gap.label.length * 6.4;
-      for (let k = 0; k < 5; k++) { if (fits({ x0: gx - gw / 2, x1: gx + gw / 2, y0: ty - 10, y1: ty + 3 })) break; ty = clampY(ty - 12); }
+      const gw = Math.max(o.gap.label.length, 4) * 6.4;
+      let ty = clampY(Math.min(ya, yb) - 24);   // headroom for a two-line label above the top line
+      for (let k = 0; k < 5; k++) { if (fits({ x0: gx - gw / 2, x1: gx + gw / 2, y0: ty - 10, y1: ty + 15 })) break; ty = clampY(ty - 12); }
       g += `<text class="gaptag" x="${(gx).toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle">${o.gap.label}</text>`;
+      g += `<text class="ctag" x="${(gx).toFixed(1)}" y="${(ty + 12).toFixed(1)}" text-anchor="middle">${yy(o.gap.year)}</text>`;
       reserveL(gx, gw, ty, "middle");
+      reserveL(gx, gw, ty + 12, "middle");
     }
   }
 
@@ -183,7 +197,7 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
   (o.points || []).forEach((p) => {
     const s = o.series.find((ss) => ss.y(at(p.year)!) != null) || o.series[0];
     const cx = x(p.year), cy = y(p.value);
-    const tag = `${yy(p.year)} (${p.tag})`;
+    const tag = p.tag ? `${yy(p.year)} (${p.tag})` : yy(p.year);
     const w = Math.max(o.fmt(p.value).length * 6.4, tag.length * 5.7);
     const drawDot = () => `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4" fill="${s.color}"/>`;
     const drawText = (tx: number, vY: number, sY: number, anchor: string) =>
@@ -265,9 +279,12 @@ function sections(): Sec[] {
   const volRanked = ROWS.filter((r) => r.volatility != null).sort((a, b) => (b.volatility! - a.volatility!));
   const volTop = volRanked.slice(0, 3);
   const volDips = volRanked.slice(-2);   // the two calmest elections
-  // calmest election during single-coalition dominance → the "one-coalition calm" band + its decade
-  const domCalm = ROWS.filter((r) => r.volatility != null && r.winner_vote_pc >= 50).sort((a, b) => a.volatility! - b.volatility!)[0];
-  const decadePhrase = (yr: number) => { const d = Math.floor(yr / 10) * 10, u = yr % 10; return `${u < 4 ? "early" : u < 7 ? "mid" : "late"} ${d}s`; };
+  // short historical context for the notable spikes/calms (keyed by year → drift-safe: a future
+  // election with no entry simply shows value + year, no context)
+  const volContext: Record<number, string> = {
+    1959: "opposition emerges", 1982: "BN unchallenged", 1990: "UMNO splits",
+    1999: "Reformasi", 2008: "political tsunami", 2013: "BN–PR rematch",
+  };
   const r2008 = at(2008);
   const tPeak = arg("turnout", 1), tLow = arg("turnout", -1);
   const tPrev = ROWS[ROWS.length - 2];
@@ -338,7 +355,7 @@ function sections(): Sec[] {
       opts: {
         series: [{ label: "MAL", color: C.red, focal: true, y: (r) => r.malapportionment }],
         yLabel: "Malapportionment index", fmt: (v) => num(v, 1) + "%", yMin: 0,
-        yRefs: [{ at: 0, to: 5, label: "most democracies ≤ 5%" }, { at: 15, label: "among the most malapportioned" }],
+        yRefs: [{ at: 0, to: 5, label: "most democracies ≤ 5%" }, { at: 15, label: "among the most malapportioned", side: "right" }],
         points: [{ year: mLow.year, value: mLow.malapportionment ?? 0, tag: "lowest", place: "below" }, { year: mPeak.year, value: mPeak.malapportionment ?? 0, tag: "peak" }],
       },
       body: `Every seat elects one MP, but seats hold wildly unequal numbers of voters — a rural seat can have a fraction of an urban one's electorate, so a rural vote counts for more. The Samuels–Snyder index gives the share of seats that would have to be reallocated to equalise voters per seat. Malaysia's has climbed to ${hl(num(mPeak.malapportionment ?? 0, 1) + "% in " + mPeak.year)}, from a low of ${hl(num(mLow.malapportionment ?? 0, 1) + "% in " + mLow.year)}. Anything above a few percent is high; ${hl("above ~15% is among the most malapportioned in the democratic world")}. This is a <em>structural</em> distortion, separate from <a href="#seat-bonus">the winner's bonus</a> — and unlike that bonus, it has not gone away.`,
@@ -414,12 +431,12 @@ function sections(): Sec[] {
       share: `Malaysia's biggest electoral realignments by vote-share (Pedersen volatility): ${volTop.map((r) => r.year).sort((a, b) => a - b).join(", ")}${L.volatility === volTop[0].volatility ? "" : `, with ${L.year} among them`}.`,
       opts: {
         series: [{ label: "Pedersen", color: C.teal, focal: true, y: (r) => r.volatility }],
-        yLabel: "Electoral volatility", fmt: (v) => num(v),
-        xBands: domCalm ? [{ from: domCalm.year - 2, to: domCalm.year + 2, label: "one-coalition calm" }] : [],
+        yLabel: "Electoral volatility", fmt: (v) => num(v), yMax: Math.max(...ROWS.map((r) => r.volatility ?? 0)) * 1.35,
+        xLines: at(2008) ? [{ year: 2008, label: `${yy(2008)} ${volContext[2008]}` }] : [],
         points: [
-          ...volTop.map((r) => ({ year: r.year, value: r.volatility!, tag: "peak" })),
+          ...volTop.map((r) => ({ year: r.year, value: r.volatility!, tag: volContext[r.year] ?? "" })),
           // dips sit to the SIDES so they don't collide with the line at the bottom of the V
-          ...volDips.slice().sort((a, b) => a.year - b.year).map((r, i) => ({ year: r.year, value: r.volatility!, tag: "low", place: (i === 0 ? "left" : "right") as const })),
+          ...volDips.slice().sort((a, b) => a.year - b.year).map((r, i) => ({ year: r.year, value: r.volatility!, tag: volContext[r.year] ?? "", place: (i === 0 ? "left" : "right") as const })),
         ],
       },
       body: `Pedersen volatility sums how much each bloc's vote share shifts from one election to the next. The largest realignments by this measure came in ${hlt(volTop.map((r) => r.year).sort((a, b) => a - b).join(", "))} — each a wholesale redrawing of who voted for whom. The calmest elections — ${volDips.slice().sort((a, b) => a.year - b.year).map((r) => hlt(String(r.year))).join(" and ")} — were near-repeat contests, where little support moved between blocs.`,

@@ -127,6 +127,9 @@ footer a { color: var(--accent); }
 /* shaded period */
 .xband { fill: rgba(107,98,86,.06); }
 .bandlab { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 10.5px; font-weight: 600; }
+/* vertical event line */
+.xline { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; opacity: .55; }
+.xlinelab { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 10.5px; font-weight: 600; }
 /* point callouts (peaks / dips) */
 .leader { stroke: #cfc7b6; stroke-width: 1; }
 .cval { font-family: "Space Grotesk", sans-serif; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
