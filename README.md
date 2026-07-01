@@ -8,16 +8,21 @@ of political science.
 
 ![Nadi Demokrasi](https://zachtheyek.github.io/nadi-demokrasi/og-default.png)
 
-## The six indicators
+## The seven indicators
 
 | Indicator | Formula | What it shows |
 |-----------|---------|---------------|
 | **Disproportionality** | Gallagher LSq = √(½ Σ(vᵢ−sᵢ)²) | How faithfully votes become seats (peaked 24.0 in 2004) |
+| **Malapportionment** | MAL = ½ Σ\|1/n − eᵢ/E\| (Samuels–Snyder) | Unequal voters per seat — the *structural* distortion (8% → 18%, a record) |
 | **Winner's seat bonus** | seat% − vote% | FPTP's reward to the largest bloc (+27pp → −1pp) |
-| **Effective N of parties** | N = 1/Σpᵢ² (Laakso–Taagepera) | Fragmentation (1.5 → 3.6) |
-| **Electoral volatility** | V = ½ Σ\|vᵢ,t − vᵢ,t₋₁\| (Pedersen) | The largest vote-share realignments (1959, 1990, 1999, 2022) |
-| **Turnout** | ballots / electors | Participation (69–84%) |
 | **Winner's vote share** | — | The end of the majority party (82% → 38%) |
+| **Effective N of parties** | N = 1/Σpᵢ² (Laakso–Taagepera) | Fragmentation (1.5 → 3.6) |
+| **Electoral volatility** | V = ½ Σ\|vᵢ,t − vᵢ,t₋₁\| (Pedersen) | The largest vote-share realignments (1959, 1990, 1999) |
+| **Turnout** | ballots / electors | Participation (69–84%) |
+
+Disproportionality (the total vote-to-seat gap) is decomposed into its two sources:
+**malapportionment** (unequal districts) and the **winner's bonus** (the mechanical FPTP
+reward). The sections are ordered to read that way.
 
 Every number on the page (headline figures, chart points, the prose, the annotations,
 the citation) is **recomputed from the source data** at build time — nothing is
@@ -39,12 +44,14 @@ These indicators describe the national party system honestly, but they do not me
 everything. The most important caveats — also shipped on the page, under **Method &
 limitations**:
 
-- **Malapportionment and gerrymandering are not isolated.** Gallagher and the seat
-  bonus capture the *total* gap between votes and seats; they cannot separate the
-  mechanical effect of single-member plurality from unequal electorate sizes per seat
-  (rural seats hold far fewer voters than urban ones), which is large in Malaysia.
-  Decomposing the two would need a dedicated malapportionment index (a natural next
-  addition — the data is in the corpus).
+- **Malapportionment is now measured, but with its own limits.** The Samuels–Snyder
+  index captures unequal *registered* electors per seat; it does not adjust for the gap
+  between registered and voting-age population, and it does not say *which* bloc the
+  unequal map favours. A partisan-bias / efficiency-gap measure (the gerrymandering
+  question proper) is the natural next addition — the seat-level vote data is in the corpus.
+- **Gallagher still reports the total.** The disproportionality score bundles both the
+  winner's bonus and malapportionment; the two are shown separately, but the corpus does
+  not let us cleanly attribute every Gallagher point to one source or the other.
 - **Vote volatility ≠ seat upheaval.** Pedersen volatility tracks vote-share movement
   between blocs. A result like 2008 can transform parliament while moving relatively
   few votes, so the chart understates seat-level "earthquakes". Read it alongside the
@@ -60,7 +67,10 @@ limitations**:
   participation among all eligible adults (before automatic registration).
 - **Federal general elections only.** State elections, by-elections, and the timing
   differences for Sabah (joined 1963) and Sarawak (first federal vote 1969) are out of
-  scope. No seat-level competitiveness/marginality measure is included yet.
+  scope.
+- **Party-system, not seats or people.** No seat-level competitiveness/marginality measure,
+  and no descriptive representation (the corpus does carry candidate sex, ethnicity, and
+  seat margins) — natural further dimensions, listed on the page too.
 
 ## Reproduce
 

@@ -34,6 +34,7 @@ stats = pd.read_parquet(FOUND / "contests.parquet")
 cs = pd.read_parquet(FOUND / "lookup_coalition_succession.parquet")
 ps = pd.read_parquet(FOUND / "lookup_party_succession.parquet")
 coal = pd.read_parquet(FOUND / "lookup_coalition.parquet").set_index("coalition_uid")["coalition"].to_dict()
+party = pd.read_parquet(FOUND / "lookup_party.parquet").set_index("party_uid")["party"].to_dict()
 
 # canonical id for cross-election matching (collapse pure renames only)
 c_ren = dict(zip(cs[cs.type == "replace"].predecessor_uid, cs[cs.type == "replace"].successor_uid))
@@ -51,7 +52,7 @@ fed["won"] = fed.result.isin(["won", "won_uncontested"])
 def bloc_label(uid):
     if uid.startswith("coal:"):
         return coal.get(uid[5:], uid[5:])
-    return uid  # party-level keep raw; label resolved later if needed
+    return party.get(uid[6:], uid[6:])  # strip "party:" and resolve to the party's short label
 
 def bloc_canon(uid):
     if uid.startswith("coal:"):
@@ -85,25 +86,42 @@ for elec, g in fed.groupby("election"):
 
     # winner = bloc with most seats
     win = by_bloc.loc[by_bloc.seats.idxmax()]
-    # turnout (mean across contests)
+    # turnout (mean across contests) + malapportionment from the same federal contest table
     st = stats[(stats.election == elec) & (stats.seat_type == "federal")]
     turnout = float(st.voter_turnout.mean())
+
+    # Malapportionment (Samuels–Snyder): MAL = ½ Σ |sᵢ − eᵢ| where every seat has an equal
+    # share of seats sᵢ = 1/n but an unequal share of the electorate eᵢ = electorsᵢ / Σelectors.
+    # It is the fraction of seats that would have to be reallocated to equalise voters per seat.
+    electors = st.voters_total.dropna().values
+    malapp = None
+    if len(electors) > 1 and electors.sum() > 0:
+        e_share = electors / electors.sum()
+        malapp = float(0.5 * np.sum(np.abs(e_share - 1.0 / len(electors))) * 100)
+
+    # top blocs by seats (drift-proof names for the narrative, e.g. the "three biggest blocs")
+    tb = by_bloc[by_bloc.seats > 0].sort_values("seats", ascending=False)
+    top_blocs = [{"label": bloc_label(r.bloc_uid), "seats": int(r.seats),
+                  "seat_pc": round(float(r.s) * 100, 1)} for _, r in tb.head(5).iterrows()]
 
     rows.append({
         "election": elec, "year": year, "n_seats": int(n_seats),
         "n_blocs": int((by_bloc.votes > 0).sum()),
         "enp_votes": round(float(enp_v), 2), "enp_seats": round(float(enp_s), 2),
         "gallagher": round(float(gallagher), 2),
+        "malapportionment": (round(malapp, 2) if malapp is not None else None),
         "volatility": (round(float(volatility), 2) if volatility is not None else None),
         "turnout": (round(turnout, 1) if not np.isnan(turnout) else None),
         "winner": bloc_label(win.bloc_uid),
         "winner_vote_pc": round(float(win.v) * 100, 1),
         "winner_seat_pc": round(float(win.s) * 100, 1),
         "winner_seat_bonus": round(float(win.s - win.v) * 100, 1),
+        "top_blocs": top_blocs,
     })
 
 df = pd.DataFrame(rows).sort_values("year")
-df.to_csv(OUT / "indicators.csv", index=False)
+# top_blocs is a nested list — keep it in the JSON only, not the flat CSV
+df.drop(columns=["top_blocs"]).to_csv(OUT / "indicators.csv", index=False)
 # dump from the rows list (proper None), not the DataFrame (which turns None into NaN
 # and json.dumps would emit an invalid bare `NaN` token).
 rows_sorted = sorted(rows, key=lambda r: r["year"])
@@ -111,4 +129,4 @@ rows_sorted = sorted(rows, key=lambda r: r["year"])
 
 pd.set_option("display.width", 200)
 print(df[["year", "winner", "winner_vote_pc", "winner_seat_pc", "winner_seat_bonus",
-          "gallagher", "enp_votes", "enp_seats", "volatility", "turnout"]].to_string(index=False))
+          "gallagher", "malapportionment", "enp_votes", "enp_seats", "volatility", "turnout"]].to_string(index=False))

@@ -31,8 +31,15 @@ header.hero { border-bottom: 1px solid var(--line); padding: 70px 0 40px; text-a
 
 section.ind { padding: 40px 0; border-top: 1px solid var(--line); }
 section.ind:first-of-type { border-top: 0; }
+.ind-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .ind h2 { font-family: "Space Grotesk", sans-serif; font-size: clamp(24px, 6vw, 33px); font-weight: 700; letter-spacing: -.01em; line-height: 1.1; }
 .ind .q { color: var(--accent2); font-style: italic; font-size: 17px; margin-top: 6px; }
+.sectbar { display: flex; align-items: center; gap: 8px; flex: none; margin-top: 6px; }
+.anchor { font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 15px; text-decoration: none; color: var(--line); width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid transparent; }
+.ind:hover .anchor { color: var(--muted); }
+.anchor:hover { color: var(--accent); border-color: var(--line); }
+.sharex { font-family: "Space Grotesk", sans-serif; font-size: 12px; font-weight: 600; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 5px 10px; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.sharex:hover { border-color: var(--accent); color: var(--accent); }
 
 /* headline number + caption: caption vertically centered against the big number */
 .bignow { font-family: "Space Grotesk", sans-serif; display: flex; align-items: center; gap: 14px; margin: 18px 0 6px; flex-wrap: wrap; }
@@ -92,6 +99,8 @@ footer a { color: var(--accent); }
 .citehd { display: flex; justify-content: space-between; align-items: center; font-family: "Space Grotesk", sans-serif; font-size: 18px; font-weight: 700; }
 .citex { font-size: 24px; line-height: 1; background: none; border: 0; color: var(--muted); cursor: pointer; }
 .citenote { font-size: 14px; color: var(--muted); margin: 8px 0 16px; line-height: 1.5; }
+.citenote a { color: var(--accent); text-decoration: none; }
+.orcid { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); }
 .citeblock { margin-bottom: 14px; }
 .citelabel { font-family: "Space Grotesk", sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .copy { font-family: "Space Grotesk", sans-serif; font-size: 11px; font-weight: 600; border: 1px solid var(--line); background: #fff; border-radius: 7px; padding: 3px 9px; color: var(--ink); cursor: pointer; }
@@ -102,16 +111,22 @@ footer a { color: var(--accent); }
 .toast { position: fixed; top: 18px; right: 18px; background: var(--ink); color: #fff; font-family: "Space Grotesk", sans-serif; font-size: 13px; font-weight: 600; padding: 10px 14px; border-radius: 10px; opacity: 0; transform: translateY(-8px); transition: opacity .18s, transform .18s; z-index: 70; pointer-events: none; }
 .toast.on { opacity: 1; transform: translateY(0); }
 
-/* chart elements */
-.gl { stroke: #efe9dc; stroke-width: 1; }
+/* chart elements — no gridlines; range-frame axes; a marker layer that stands alone */
 .frame { stroke: #cfc7b6; stroke-width: 1; }
-.zero { stroke: var(--muted); stroke-dasharray: 2 3; stroke-width: 1; opacity: .55; }
-.gapfill { fill: rgba(179,64,47,.07); }
-.leader { stroke: #cfc7b6; stroke-width: 1; }
 .axt { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 11px; }
-.endlab { font-family: "Space Grotesk", sans-serif; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.endlab.focal { font-size: 13px; }
-.endname { font-family: "Space Grotesk", sans-serif; font-size: 10.5px; fill: var(--muted); }
-.annot { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; opacity: .5; }
-.annott { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 10.5px; font-weight: 600; }
+.endname { font-family: "Space Grotesk", sans-serif; font-size: 11px; font-weight: 600; }
+.gapfill { fill: rgba(179,64,47,.06); }
+.gapconn { stroke: var(--ink); stroke-width: 1.4; }
+.gaptag { font-family: "Space Grotesk", sans-serif; fill: var(--ink); font-size: 11.5px; font-weight: 700; }
+/* reference lines & bands (thresholds) */
+.refline { stroke: var(--muted); stroke-dasharray: 3 4; stroke-width: 1; opacity: .6; }
+.yband { fill: rgba(47,111,107,.07); }
+.reflab { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 10.5px; font-style: italic; }
+/* shaded period */
+.xband { fill: rgba(107,98,86,.06); }
+.bandlab { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 10.5px; font-weight: 600; }
+/* point callouts (peaks / dips) */
+.leader { stroke: #cfc7b6; stroke-width: 1; }
+.cval { font-family: "Space Grotesk", sans-serif; font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ctag { font-family: "Space Grotesk", sans-serif; fill: var(--muted); font-size: 10.5px; }
 .dot { cursor: pointer; }
