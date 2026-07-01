@@ -10,6 +10,7 @@ const SITE = location.origin + BASE;
 const ORCID = "0000-0002-2532-4883";
 // the X (formerly Twitter) wordmark, used in place of the letter "X" on share buttons
 const X_ICON = `<svg class="xlogo" viewBox="0 0 24 24" aria-label="X" role="img"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+const GH_ICON = `<svg class="ghlogo" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
 const app = document.getElementById("app")!;
 
 interface Bloc { label: string; seats: number; seat_pc: number; }
@@ -533,7 +534,7 @@ function methodHTML(m: Method, eqNo: number | null): string {
 
 function sectbar(s: Sec): string {
   return `<div class="sectbar">
-    <button class="sharex" data-share="${s.id}" title="Share this section on X">Share on ${X_ICON}</button>
+    <button class="sharex" data-share="${s.id}" title="Share this section on X">${X_ICON} Share</button>
   </div>`;
 }
 
@@ -550,7 +551,7 @@ function render() {
     <p class="dek">Seven decades of general elections measured with the standard tools of political science — disproportionality, malapportionment, fragmentation, competitiveness, representation and turnout.</p>
     <div class="meta">${ROWS.length} federal general elections · ${F.year}–${L.year} · reproducible &amp; citable</div>
     <div class="herobtns">
-      <button class="btn" id="shareBtn">Share on ${X_ICON}</button>
+      <button class="btn" id="shareBtn">${X_ICON} Share</button>
       <a class="btn" href="${BASE}data/nadi-demokrasi-data.zip" download>↓ Data</a>
       <button class="btn" id="citeBtn">❝ Cite</button>
     </div>
@@ -588,10 +589,10 @@ function render() {
         <li><b>No competitiveness, marginality, or descriptive-representation measure yet.</b> The indicators describe the national party system, not how close individual seats were, nor who the MPs are (the corpus does carry candidate sex and ethnicity, and seat margins — natural further dimensions).</li>
       </ul>
       <div class="dl">
-        <button class="citelink" id="shareBtn2">Share on ${X_ICON}</button>
-        <a href="${BASE}data/nadi-demokrasi-data.zip" download>↓ Data (CSV + JSON + script)</a>
-        <a href="https://github.com/zachtheyek/nadi-demokrasi" target="_blank" rel="noopener">Source &amp; formulae →</a>
-        <button class="citelink" id="citeBtn2">❝ Cite this work</button>
+        <button class="citelink" id="shareBtn2">${X_ICON} Share</button>
+        <a href="${BASE}data/nadi-demokrasi-data.zip" download>↓ Data</a>
+        <a href="https://github.com/zachtheyek/nadi-demokrasi" target="_blank" rel="noopener">${GH_ICON} Source</a>
+        <button class="citelink" id="citeBtn2">❝ Cite</button>
       </div>
     </div>
     <footer>
@@ -667,7 +668,7 @@ function openCite() {
   citeBox.innerHTML = `
     <div class="citecard">
       <div class="citehd"><span>Cite this work</span><button class="citex" aria-label="close">×</button></div>
-      <p class="citenote">By <a href="https://orcid.org/${ORCID}" target="_blank" rel="noopener">Zach Yek <span class="orcid">iD ${ORCID}</span></a>. Please also credit the underlying data — the Malaysian Election Corpus by Thevesh Thevananthan.</p>
+      <p class="citenote">Analysis by <a href="https://x.com/zachtheyek" target="_blank" rel="noopener">Zach Yek</a> (ORCID: <a href="https://orcid.org/${ORCID}" target="_blank" rel="noopener">${ORCID}</a>). Please also credit the underlying data — the <a href="https://electiondata.my" target="_blank" rel="noopener">Malaysian Election Corpus</a> by <a href="https://x.com/Thevesh" target="_blank" rel="noopener">Thevesh Thevananthan</a>.</p>
       <div class="citeblock">
         <div class="citelabel">APA <button class="copy" data-k="apa">Copy</button></div>
         <pre>${esc(apa)}</pre>
