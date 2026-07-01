@@ -6,7 +6,7 @@
   "scripts": {
     "data": "python3 scripts/compute_indicators.py",
     "dev": "vite",
-    "build": "vite build && node scripts/gen_og.mjs",
+    "build": "vite build && node scripts/gen_og.mjs && node scripts/prerender.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {

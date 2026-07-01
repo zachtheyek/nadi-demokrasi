@@ -660,7 +660,8 @@ function render() {
   }));
   app.querySelectorAll<HTMLElement>(".sharex").forEach((b) => b.addEventListener("click", () => {
     const s = secs.find((x) => x.id === b.dataset.share)!;
-    shareOnX(s.share + " — via Nadi Demokrasi.", SITE + "#" + s.id);
+    // share the per-section page (its OG image is this section's plot), so the tweet embeds the chart
+    shareOnX(s.share + " — via Nadi Demokrasi.", SITE + "s/" + s.id + "/");
   }));
   // deep-link on load (content is fetched async, so scroll after render)
   if (location.hash) { const el = document.getElementById(location.hash.slice(1)); if (el) setTimeout(() => el.scrollIntoView(), 40); }
