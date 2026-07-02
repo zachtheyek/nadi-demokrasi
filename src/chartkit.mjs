@@ -118,8 +118,8 @@ export function buildSpecs(rows) {
       id: "map-bias", h2: "Who the map favours", q: "Do the over-represented seats break one way?",
       now: (d.L.map_bias >= 0 ? "+" : "−") + num(Math.abs(d.L.map_bias ?? 0), 0) + "%",
       nowCap: d.L.map_bias >= 0
-        ? `the winning bloc's seats each held about ${num(Math.abs(d.L.map_bias ?? 0), 0)}% fewer voters than the average seat in ${d.L.year} — the unequal map favoured the winner.`
-        : `the winning bloc's seats each held about ${num(Math.abs(d.L.map_bias ?? 0), 0)}% more voters than the average seat in ${d.L.year} — the unequal map worked against the winner, not for it.`,
+        ? `the map's tilt toward the ${d.L.year} winner — its seats ran smaller than the average, so the unequal map favoured it.`
+        : `the map's tilt toward the ${d.L.year} winner — its seats ran bigger than the average, so the unequal map worked against it, not for it.`,
       share: `Malaysia's unequal map once handed the winner its smallest seats; by ${d.L.year} that flipped — the winning bloc's seats held about ${num(Math.abs(d.L.map_bias ?? 0), 0)}% ${d.L.map_bias >= 0 ? "fewer" : "more"} voters than average, so the rural-weighted map now works against whoever wins the vote.`,
       opts: {
         series: [{ label: "Map bias", color: C.red, focal: true, y: (r) => r.map_bias }],
@@ -137,7 +137,7 @@ export function buildSpecs(rows) {
     {
       id: "compactness", h2: "District shapes", q: "How irregular are the boundaries?",
       now: num(d.L.compactness ?? 0, 2),
-      nowCap: `average compactness of a parliamentary seat in ${d.L.year} (Polsby–Popper; 1 = a perfect circle) — the least compact boundaries on record, after the latest redelineation.`,
+      nowCap: `average compactness of a parliamentary seat in ${d.L.year} (1 = a perfect circle) — the least compact boundaries on record, after the latest redelineation.`,
       share: `Malaysia's parliamentary boundaries are the least compact on record: average Polsby–Popper compactness fell to ${num(d.L.compactness ?? 0, 2)} in ${d.L.year} (1 = a circle), after the latest redelineation redrew the most irregular seats in its history.`,
       opts: {
         series: [{ label: "Compactness", color: C.red, focal: true, y: (r) => r.compactness }],
@@ -175,7 +175,9 @@ export function buildSpecs(rows) {
           { label: "By votes", color: C.gold, y: (r) => r.enp_votes },
         ],
         yLabel: "Effective number of parties", fmt: (v) => num(v, 1), yMin: 0.8,
-        points: [{ year: d.enpLow.year, value: d.enpLow.enp_seats, tag: "one-party low", place: "below" }, { year: d.enpPeak.year, value: d.enpPeak.enp_seats, tag: "record" }],
+        // a dashed marker at ~1.5 through the BN decades, with a floating era label in clear space
+        yRefs: [{ at: 1.5, xTo: 2013, labelAt: { year: 1978, value: 2.7 }, label: "the 1.5-party era" }],
+        points: [{ year: d.enpLow.year, value: d.enpLow.enp_seats, tag: "one-party low", place: "right" }, { year: d.enpPeak.year, value: d.enpPeak.enp_seats, tag: "record" }],
       },
     },
     {
@@ -212,7 +214,7 @@ export function buildSpecs(rows) {
       opts: {
         series: [{ label: "Seats flipped", color: C.red, focal: true, y: (r) => r.turnover }],
         yLabel: "Share of seats that changed bloc", fmt: (v) => num(v) + "%", yMin: 0,
-        xLines: at(rows, 2008) ? [{ year: 2008, label: `${yy(2008)} tsunami` }] : [],
+        xLines: at(rows, 2008) ? [{ year: 2008, label: `${yy(2008)} political tsunami` }] : [],
         points: [{ year: d.toLow.year, value: d.toLow.turnover ?? 0, tag: "quietest", place: "below" }, { year: d.toPeak.year, value: d.toPeak.turnover ?? 0, tag: "record" }],
       },
     },
@@ -235,6 +237,9 @@ export function buildSpecs(rows) {
       opts: {
         series: [{ label: "Turnout", color: C.gold, focal: true, y: (r) => r.turnout }],
         yLabel: "Voter turnout", fmt: (v) => num(v) + "%", yMin: 60, yMax: 90,
+        // every election before automatic registration + Undi18 (in force 2021) counts ballots over
+        // *registered* electors, so those figures overstate participation among all eligible adults
+        xBands: [{ from: 1955, to: 2021, label: "overstated before auto-registration & Undi18", fill: "rgba(107,98,86,.09)" }],
         points: [{ year: d.tLow.year, value: d.tLow.turnout ?? 0, tag: "low", place: "below" }, { year: d.tPeak.year, value: d.tPeak.turnout ?? 0, tag: "peak" }, { year: L.year, value: L.turnout ?? 0, tag: "now", place: "below" }],
       },
     },
@@ -298,10 +303,10 @@ export function chartSVG(rows, o, W, H) {
   const reflab = (lx, ly, anchor, s) => txt(lx, ly, anchor, `fill="${C.muted}" font-size="10.5" font-style="italic"`, s);
   const axt = (tx, ty, anchor, s) => txt(tx, ty, anchor, `fill="${C.muted}" font-size="11"`, s);
 
-  // shaded period bands (faintest layer)
+  // shaded period bands (faintest layer); optional fill overrides the default neutral tint
   (o.xBands || []).forEach((b) => {
     const x0 = x(Math.max(b.from, xMin)), x1 = x(Math.min(b.to, xMax));
-    g += `<rect x="${x0.toFixed(1)}" y="${plotTop}" width="${(x1 - x0).toFixed(1)}" height="${(plotBot - plotTop).toFixed(1)}" fill="rgba(107,98,86,.06)"/>`;
+    g += `<rect x="${x0.toFixed(1)}" y="${plotTop}" width="${(x1 - x0).toFixed(1)}" height="${(plotBot - plotTop).toFixed(1)}" fill="${b.fill || "rgba(107,98,86,.06)"}"/>`;
     if (b.label) { const lx = (x0 + x1) / 2, ly = plotTop - 8; g += txt(lx, ly, "middle", `fill="${C.muted}" font-size="10.5" font-weight="600"`, b.label); reserveL(lx, b.label.length * 5.9, ly, "middle"); }
   });
 
@@ -316,14 +321,24 @@ export function chartSVG(rows, o, W, H) {
       g += reflab(lx, ly, anchor, r.label);
       reserveL(lx, r.label.length * 5.3, ly, anchor);
     } else {
-      const yr = y(r.at), ly = yr + 14;
-      g += `<line x1="${m.l}" y1="${yr.toFixed(1)}" x2="${plotRight.toFixed(1)}" y2="${yr.toFixed(1)}" stroke="${C.muted}" stroke-dasharray="3 4" stroke-width="1" opacity=".6"/>`;
-      g += reflab(lx, ly, anchor, r.label);
-      reserveL(lx, r.label.length * 5.3, ly, anchor);
-      if (r.label2) {
-        const ly2 = ly + 12;
-        g += reflab(lx, ly2, anchor, r.label2);
-        reserveL(lx, r.label2.length * 5.3, ly2, anchor);
+      const yr = y(r.at);
+      // xTo stops the line short of the right edge (an era marker, not a full threshold)
+      const x2 = r.xTo != null ? x(r.xTo) : plotRight;
+      g += `<line x1="${m.l}" y1="${yr.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${yr.toFixed(1)}" stroke="${C.muted}" stroke-dasharray="3 4" stroke-width="1" opacity=".6"/>`;
+      if (r.labelAt) {
+        // place the label at a chosen (year, value) — used to float an era label into clear space
+        const llx = x(r.labelAt.year), lly = y(r.labelAt.value);
+        g += reflab(llx, lly, "middle", r.label);
+        reserveL(llx, r.label.length * 5.3, lly, "middle");
+      } else {
+        const ly = yr + 14;
+        g += reflab(lx, ly, anchor, r.label);
+        reserveL(lx, r.label.length * 5.3, ly, anchor);
+        if (r.label2) {
+          const ly2 = ly + 12;
+          g += reflab(lx, ly2, anchor, r.label2);
+          reserveL(lx, r.label2.length * 5.3, ly2, anchor);
+        }
       }
     }
   });
