@@ -1,9 +1,6 @@
 # CLAUDE.md
 
 Always-on rules for any coding agent in this repo. Canonical detail lives in [README.md](README.md).
-**Picking up this project? Read [docs/CONTEXT.md](docs/CONTEXT.md) first** — the full maintainer
-context (design contract, every indicator, the chart engine, the self-update/drift + share-card
-pipelines, decisions & rationale, gotchas, and open work).
 
 ## Project
 
@@ -46,7 +43,7 @@ with `MECO_OUT`). `public/data/` and `dist/` are generated, never committed.
 - **Each chart stands on its own.** Tufte rules: no gridlines, range-frame axes, a single accent
   (clay red `--accent`) on the focal series, direct end-labels (no legend), labelled peak/dip
   callouts with the value and an apostrophe-year, reference lines/bands and shaded periods where the
-  prose names a threshold or era. Reference-line labels sit *below* the line; callout tags read
+  prose names a threshold or era. Reference-line labels sit _below_ the line; callout tags read
   `'YY (tag)`; labels must not overlap (a de-collision pass handles this — keep it working).
 - **Highlight, don't bold.** Key results in prose use colored spans (`.hl` red / `.hl-t` teal /
   `.hl-g` gold), never `<b>`.
@@ -94,11 +91,11 @@ citation year range/date; the meta counts.
      deliberately).
    - Women: **"~30% many democracies treat as a floor"** ↔ `yRef {30}`, and "half of the population" —
      stable benchmarks; adjust only if a sentence reads wrong against the new value.
-   These reflect the comparative-politics literature and rarely change; adjust wording only if the
-   new data makes a sentence read wrong (e.g. the metric crosses a stated band).
+     These reflect the comparative-politics literature and rarely change; adjust wording only if the
+     new data makes a sentence read wrong (e.g. the metric crosses a stated band).
 3. **Directional / trend claims** that assume the current trajectory — re-check the direction still
    holds: malapportionment "has not gone away"; **map bias "the tilt has flipped" — the `L.map_bias<0`
-   branch assumes the winner now sits in the *larger* seats; if it goes positive again the prose swaps
+   branch assumes the winner now sits in the _larger_ seats; if it goes positive again the prose swaps
    to the "still favours it" branch automatically, but re-read it**; **compactness "the latest
    redelineation … least compact on record" — assumes the newest delimitation is the low point (it is,
    via `cLow`); if a future redelineation is more compact, reword**; fragmentation "until {year}… a
@@ -106,7 +103,7 @@ citation year range/date; the meta counts.
    "long dominated by safe seats … has risen sharply"; dominance "lost for good" + "from a dominant-party
    system to competitive, coalition-by-coalition politics"; turnout "the most fiercely contested election
    of the BN era" (tied to the peak year) and the "**despite** millions of newly-enrolled young voters"
-   framing (assumes turnout *fell*); women "climbed … then eased" (assumes the recent dip). If the
+   framing (assumes turnout _fell_); women "climbed … then eased" (assumes the recent dip). If the
    newest election reverses a trend, reword to match.
    - **Compactness data is precomputed & committed** (`data/compactness.json` via
      `scripts/compute_compactness.py`) — it only changes on a redelineation. After a new one, regenerate
