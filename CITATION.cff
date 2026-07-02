@@ -5,18 +5,18 @@ message: >-
 title: "Nadi Demokrasi: Malaysia's Democracy in Numbers"
 abstract: >-
   A reproducible, citable single-page dashboard measuring seven decades of Malaysian federal general
-  elections (1955–2022) with fourteen standard political-science indicators, in narrative order:
-  vote-to-seat disproportionality (Gallagher), the winner's seat bonus, malapportionment
-  (Samuels–Snyder), map bias and district compactness (Polsby–Popper) as measures of the
-  gerrymandering question, the winning bloc's vote share, the effective number of parties
-  (Laakso–Taagepera), multi-cornered contests, electoral volatility (Pedersen), seat turnover,
-  marginal seats, turnout, and the descriptive representation of women and ethnic communities.
-  Read together, the indicators tell a coherent story: first-past-the-post long turned modest vote
-  leads into commanding majorities (a seat bonus once worth +27 points, disproportionality above 20),
-  but that mechanical reward has since collapsed to about zero — even as unequal district boundaries
-  (malapportionment at a record ~18%) now tilt against whoever wins the popular vote, and the party
-  system has fragmented from a one-and-a-half-party dominance to a record ~3.6 effective parties.
-  Every figure is computed from the Malaysian Election Corpus (MECo).
+  elections (1955–2022) with fourteen standard political-science indicators: vote-to-seat 
+  disproportionality (Gallagher), the winner's seat bonus, malapportionment (Samuels–Snyder), map 
+  bias and district compactness (Polsby–Popper) as measures of the gerrymandering question, the 
+  winning bloc's vote share, the effective number of parties (Laakso–Taagepera), multi-cornered 
+  contests, electoral volatility (Pedersen), seat turnover, marginal seats, turnout, and the 
+  descriptive representation of women and ethnic communities. Read together, the indicators tell a 
+  coherent story: first-past-the-post long turned modest vote leads into commanding majorities (a 
+  seat bonus once worth +27 points, disproportionality above 20), but that mechanical reward has 
+  since collapsed to about zero — even as unequal district boundaries (malapportionment at a record 
+  ~18%) now tilt against whoever wins the popular vote, and the party system has fragmented from a 
+  one-and-a-half-party dominance to a record ~3.6 effective parties. All analysis performed using 
+  the Malaysian Election Corpus (MECo).
 type: software
 authors:
   - family-names: Yek
