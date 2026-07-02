@@ -140,7 +140,7 @@ GitHub's failed-run emails are the alerting.
 
 ## Cite
 
-Use the **❝ Cite** button on the page (APA + BibTeX, copy to clipboard). Please
+Use the **❝ Cite** button on the page (APA + BibTeX, copy to clipboard), or GitHub's citations feature. Please
 also credit the underlying data — the Malaysian Election Corpus by Thevesh Thevananthan.
 
 ## Credit
