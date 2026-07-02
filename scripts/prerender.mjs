@@ -30,25 +30,28 @@ function wrap(text, maxChars, maxLines = 3) {
 function card(sp) {
   const W = 1200, H = 630;
   // draw the chart small (website-scale fonts) then scale the whole group up so it reads crisply on
-  // the card — identical geometry + annotations to the page, just zoomed
-  const Wc = 820, Hc = 293, sc = 1.33, ox = 56, oy = 210;
+  // the card — identical geometry + annotations to the page, just zoomed. A touch of extra vertical
+  // air is left between every element (kicker · title · question · headline · plot · footer).
+  const Wc = 820, Hc = 266, sc = 1.33, ox = 56, oy = 240;
   const { g } = chartSVG(rows, sp.opts, Wc, Hc, true);   // oblique=true: skew "italic" labels for resvg
   const numW = sp.now.length * 30 + 8;                 // rough width of the big headline number
-  const capX = ox + numW + 20;
+  const capX = ox + numW + 22;
   const capLines = wrap(sp.nowCap, Math.max(30, Math.floor((W - 54 - capX) / 9.6)), 3);
-  const capStartY = 168 - (capLines.length - 1) * 11;  // keep the caption block centred on the number
+  // vertically CENTRE the big number and its caption on a shared line Yc (number left, caption right)
+  const Yc = 197, LH = 23;
+  const capBase0 = Yc + 7 - (capLines.length - 1) * (LH / 2);
   // font-family matches the page per element: Space Grotesk for the sans UI/headings, and Gelasio
   // (a metric-compatible Georgia) italic for the question — which the page renders in serif italic
   const T = (x, y, s, sz, col, w = 400, extra = "", ff = "Space Grotesk") => `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${w}" fill="${col}" font-family="${ff}" ${extra}>${esc(s)}</text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <rect width="${W}" height="${H}" fill="${C.paper}"/>
-    ${T(ox, 50, "NADI DEMOKRASI · THE PULSE OF DEMOCRACY", 20, C.red, 700, 'letter-spacing="4"')}
-    ${T(ox, 98, sp.h2, 44, C.ink, 700)}
-    ${T(ox, 133, sp.q, 23, C.teal, 400, 'font-style="italic"', "Gelasio")}
-    ${T(ox, 196, sp.now, 56, C.ink, 700)}
-    ${capLines.map((l, i) => T(capX, capStartY + i * 23, l, 20, C.muted)).join("")}
+    ${T(ox, 52, "NADI DEMOKRASI · THE PULSE OF DEMOCRACY", 20, C.red, 700, 'letter-spacing="4"')}
+    ${T(ox, 104, sp.h2, 44, C.ink, 700)}
+    ${T(ox, 146, sp.q, 23, C.teal, 400, 'font-style="italic"', "Gelasio")}
+    ${T(ox, Yc + 20, sp.now, 56, C.ink, 700)}
+    ${capLines.map((l, i) => T(capX, capBase0 + i * LH, l, 20, C.muted)).join("")}
     <g transform="translate(${ox},${oy}) scale(${sc})">${g}</g>
-    ${T(ox, 616, "Data: Malaysian Election Corpus (Thevesh) · zachtheyek.github.io/nadi-demokrasi", 19, C.muted)}
+    ${T(ox, 614, "Data: Malaysian Election Corpus (Thevesh) · zachtheyek.github.io/nadi-demokrasi", 19, C.muted)}
   </svg>`;
 }
 
@@ -71,9 +74,9 @@ for (const sp of specs) {
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="${esc(title)}"/>
 <meta property="og:description" content="${esc(summary)}"/>
-<meta property="og:image" content="${base}/og/s/${sp.id}.png?v=5"/>
+<meta property="og:image" content="${base}/og/s/${sp.id}.png?v=6"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="${base}/og/s/${sp.id}.png?v=5"/>
+<meta name="twitter:image" content="${base}/og/s/${sp.id}.png?v=6"/>
 <link rel="canonical" href="${base}/#${sp.id}"/>
 <meta http-equiv="refresh" content="0; url=../../#${sp.id}"/>
 </head><body style="font-family:sans-serif;padding:40px">Redirecting to <a href="../../#${sp.id}">${esc(sp.h2)}</a>…</body></html>`);

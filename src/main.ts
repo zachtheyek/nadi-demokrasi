@@ -374,7 +374,7 @@ function render() {
   secs.forEach((s) => renderChart(app.querySelector(`[data-sec="${s.id}"]`)!, s.opts));
   document.getElementById("citeBtn")?.addEventListener("click", openCite);
   document.getElementById("citeBtn2")?.addEventListener("click", openCite);
-  const shareAll = () => shareOnX(`When was the last time you checked in on the health of your democracy?\n\nNadi Demokrasi analyzes ${ROWS.length} general elections (${F.year}–${L.year}) using ${secs.length} political-science indicators — measuring disproportionality, fragmentation, volatility, turnout, and representation — in a single intuitive dashboard.\n\nEvery formula listed, every number reproducible.\n\n${SITE}?v=5`);
+  const shareAll = () => shareOnX(`When was the last time you checked in on the health of your democracy?\n\nNadi Demokrasi analyzes ${ROWS.length} general elections (${F.year}–${L.year}) using ${secs.length} political-science indicators — measuring disproportionality, fragmentation, volatility, turnout, and representation — in a single intuitive dashboard.\n\nEvery formula listed, every number reproducible.\n\n${SITE}?v=6`);
   document.getElementById("shareBtn")?.addEventListener("click", shareAll);
   document.getElementById("shareBtn2")?.addEventListener("click", shareAll);
   // per-section copy-link + X share. Clicking the anchor only tags the URL with the section and
