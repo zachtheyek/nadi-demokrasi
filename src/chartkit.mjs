@@ -239,7 +239,7 @@ export function buildSpecs(rows) {
         yLabel: "Voter turnout", fmt: (v) => num(v) + "%", yMin: 60, yMax: 90,
         // every election before automatic registration + Undi18 (in force 2021) counts ballots over
         // *registered* electors, so those figures overstate participation among all eligible adults
-        xBands: [{ from: 1955, to: 2021, label: "turnout overstated, pre-auto-registration", fill: "rgba(107,98,86,.09)" }],
+        xBands: [{ from: 1955, to: 2021, label: "turnout overstated (pre-auto-registration)", fill: "rgba(107,98,86,.09)" }],
         points: [{ year: d.tLow.year, value: d.tLow.turnout ?? 0, tag: "low", place: "below" }, { year: d.tPeak.year, value: d.tPeak.turnout ?? 0, tag: "peak" }, { year: L.year, value: L.turnout ?? 0, tag: "now", place: "below" }],
       },
     },
