@@ -78,7 +78,7 @@ export function buildSpecs(rows) {
       id: "disproportionality", h2: "Disproportionality", q: "How faithfully do votes turn into seats?",
       now: num(L.gallagher, 1),
       nowCap: `the gap between how Malaysians voted and the seats they got in ${L.year} — near its narrowest ever, down from a peak of ${num(d.gPeak.gallagher, 1)} in ${d.gPeak.year}.`,
-      share: `Malaysia's vote-to-seat disproportionality (Gallagher) peaked at ${num(d.gPeak.gallagher, 1)} in ${d.gPeak.year} and has fallen to ${num(L.gallagher, 1)} by ${L.year}.`,
+      share: `Malaysia's vote-to-seat disproportionality (Gallagher) is near its narrowest ever: ${num(L.gallagher, 1)} in ${L.year}, down from its peak of ${num(d.gPeak.gallagher, 1)} in ${d.gPeak.year}`,
       opts: {
         series: [{ label: "Gallagher", color: C.red, focal: true, y: (r) => r.gallagher }],
         yLabel: "Gallagher disproportionality", fmt: (v) => num(v, 1), yMin: 0,
@@ -90,7 +90,7 @@ export function buildSpecs(rows) {
       id: "seat-bonus", h2: "The winner's bonus", q: "How much does the system inflate the largest bloc?",
       now: (L.winner_seat_bonus >= 0 ? "+" : "") + num(L.winner_seat_bonus, 1),
       nowCap: `percentage-point gap between the winner's seat share and vote share in ${L.year} — ${d.bonusCap}`,
-      share: `First-past-the-post once handed Malaysia's election winner up to +${num(d.bPeak.winner_seat_bonus, 1)} points of seat bonus (${d.bPeak.year}). By ${L.year} it had vanished (${num(L.winner_seat_bonus, 1)}).`,
+      share: `First-past-the-post once handed Malaysia's election winner up to +${num(d.bPeak.winner_seat_bonus, 1)} points of seat bonus (${d.bPeak.year}). By ${L.year} it had vanished completely (${num(L.winner_seat_bonus, 1)}).`,
       opts: {
         series: [
           { label: "Seat share", color: C.red, focal: true, y: (r) => r.winner_seat_pc },
@@ -106,7 +106,7 @@ export function buildSpecs(rows) {
       id: "malapportionment", h2: "Malapportionment", q: "Is every vote worth the same?",
       now: num(L.malapportionment ?? 0, 1) + "%",
       nowCap: `of seats are mis-allocated relative to one-person-one-vote in ${L.year} — a record, and extreme by world standards.`,
-      share: `${num(L.malapportionment ?? 0, 1)}% of Malaysia's parliamentary seats are mis-allocated relative to one-person-one-vote (${L.year}) — among the most malapportioned democracies in the world.`,
+      share: `In ${L.year}, ${num(L.malapportionment ?? 0, 1)}% of Malaysia's parliamentary seats are mis-allocated relative to one-person-one-vote — among the most malapportioned democracies in the world.`,
       opts: {
         series: [{ label: "MAL", color: C.red, focal: true, y: (r) => r.malapportionment }],
         yLabel: "Malapportionment index", fmt: (v) => num(v, 1) + "%", yMin: 0,
@@ -120,7 +120,7 @@ export function buildSpecs(rows) {
       nowCap: d.L.map_bias >= 0
         ? `the map's tilt toward the ${d.L.year} winner — its seats ran smaller than the average, so the unequal map favoured it.`
         : `the map's tilt toward the ${d.L.year} winner — its seats ran bigger than the average, so the unequal map worked against it, not for it.`,
-      share: `Malaysia's unequal map once handed the winner its smallest seats; by ${d.L.year} that flipped — the winning bloc's seats held about ${num(Math.abs(d.L.map_bias ?? 0), 0)}% ${d.L.map_bias >= 0 ? "fewer" : "more"} voters than average, so the rural-weighted map now works against whoever wins the vote.`,
+      share: `Malaysia's unequal map once favored the winner by handing them its smallest seats; by ${L.year}, that flipped — the winning bloc's seats now held about ${num(Math.abs(L.map_bias ?? 0), 0)}% more voters than average, making the rural-weighted map work against whoever wins the vote.`,
       opts: {
         series: [{ label: "Map bias", color: C.red, focal: true, y: (r) => r.map_bias }],
         yLabel: "Winner's seat-size advantage", fmt: (v) => (v >= 0 ? "+" : "−") + num(Math.abs(v), 0) + "%",
@@ -138,7 +138,7 @@ export function buildSpecs(rows) {
       id: "compactness", h2: "District shapes", q: "How irregular are the boundaries?",
       now: num(d.L.compactness ?? 0, 2),
       nowCap: `average compactness of a parliamentary seat in ${d.L.year} (1 = a perfect circle) — the least compact boundaries on record, after the latest redelineation.`,
-      share: `Malaysia's parliamentary boundaries are the least compact on record: average Polsby–Popper compactness fell to ${num(d.L.compactness ?? 0, 2)} in ${d.L.year} (1 = a circle), after the latest redelineation redrew the most irregular seats in its history.`,
+      share: `Malaysia's parliamentary boundaries are the least compact on record: average Polsby–Popper compactness fell to ${num(L.compactness ?? 0, 2)} in ${L.year} (1 = a perfect circle), after the latest redelineation redrew the most irregular seats in its history.`,
       opts: {
         series: [{ label: "Compactness", color: C.red, focal: true, y: (r) => r.compactness }],
         yLabel: "District compactness (Polsby–Popper)", fmt: (v) => num(v, 2), yMin: 0.25, yMax: 0.42,
@@ -168,7 +168,7 @@ export function buildSpecs(rows) {
       id: "fragmentation", h2: "Fragmentation", q: "How many parties really matter?",
       now: num(L.enp_seats, 1),
       nowCap: `effective number of parliamentary parties in ${L.year} — the most fragmented in our history.`,
-      share: `Malaysia's effective number of parliamentary parties has risen from about ${num(d.enpLow.enp_seats, 1)} to a record ${num(L.enp_seats, 1)} (${L.year}) — from a one-party-dominant system to a genuine multi-bloc contest.`,
+      share: `Malaysia's effective number of parliamentary parties has grown to a record ${num(L.enp_seats, 1)} (${L.year}) — breaking from the long-standing one-and-a-half-party system into a genuine multi-bloc contest.`,
       opts: {
         series: [
           { label: "By seats", color: C.red, focal: true, y: (r) => r.enp_seats },
@@ -184,7 +184,7 @@ export function buildSpecs(rows) {
       id: "multi-cornered", h2: "Multi-cornered contests", q: "How many names on the ballot?",
       now: num(L.cand_per_seat, 1),
       nowCap: `candidates on the average ballot in ${L.year} — ${num(L.three_plus_pc)}% of seats were three-cornered or more.`,
-      share: `Malaysia's ballots have crowded: the average federal seat drew ${num(L.cand_per_seat, 1)} candidates in ${L.year} (up from about 2 in the two-coalition era), and ${num(L.three_plus_pc)}% of seats were three-cornered or more.`,
+      share: `Malaysia's ballots have crowded: the average federal seat drew ${num(L.cand_per_seat, 1)} candidates in ${L.year} (up from about 2 in the two-coalition era), with ${num(L.three_plus_pc)}% of seats being three-cornered or more.`,
       opts: {
         series: [{ label: "Candidates", color: C.red, focal: true, y: (r) => r.cand_per_seat }],
         yLabel: "Candidates per seat", fmt: (v) => num(v, 1), yMin: 2,
@@ -195,7 +195,7 @@ export function buildSpecs(rows) {
       id: "volatility", h2: "Volatility", q: "How much does the vote move between elections?",
       now: num(L.volatility ?? 0),
       nowCap: `how much the vote shifted between blocs from the previous election, in ${L.year} — one of the largest realignments on record.`,
-      share: `Malaysia's biggest electoral realignments by vote-share (Pedersen volatility): ${d.volTop.map((r) => r.year).sort((a, b) => a - b).join(", ")}${L.volatility === d.volTop[0].volatility ? "" : `, with ${L.year} among them`}.`,
+      share: `${L.year} saw an electoral realignment by vote-share (Pedersen volatility) on par with some of the largest we've seen: ${d.volTop.slice().sort((a, b) => a.year - b.year).map((r) => `${r.year} (${d.volContext[r.year] ?? ""})`).join(", ")}.`,
       opts: {
         series: [{ label: "Pedersen", color: C.red, focal: true, y: (r) => r.volatility }],
         yLabel: "Electoral volatility", fmt: (v) => num(v), yMax: Math.max(...rows.map((r) => r.volatility ?? 0)) * 1.35,
@@ -210,7 +210,7 @@ export function buildSpecs(rows) {
       id: "turnover", h2: "Seat turnover", q: "How many seats flip between elections?",
       now: num(L.turnover ?? 0) + "%",
       nowCap: `of seats changed hands in ${L.year} — the highest churn on record, more than half the House.`,
-      share: `${num(L.turnover ?? 0)}% of Malaysian seats changed hands in ${L.year} — the highest turnover on record, as Perikatan Nasional surged and Barisan Nasional collapsed.`,
+      share: `${num(L.turnover ?? 0)}% of Malaysian seats changed hands in ${L.year} — the highest turnover on record, as Perikatan Nasional (PN) surged and Barisan Nasional (BN) collapsed.`,
       opts: {
         series: [{ label: "Seats flipped", color: C.red, focal: true, y: (r) => r.turnover }],
         yLabel: "Share of seats that changed bloc", fmt: (v) => num(v) + "%", yMin: 0,
@@ -222,7 +222,7 @@ export function buildSpecs(rows) {
       id: "marginal", h2: "Marginal seats", q: "How close are the contests?",
       now: num(L.marginal_pc, 1) + "%",
       nowCap: `of seats in ${L.year} were won by less than 5 points — about one in ${Math.round(100 / L.marginal_pc)} seats.`,
-      share: `About one in ${Math.round(100 / L.marginal_pc)} Malaysian seats is now a knife-edge: ${num(L.marginal_pc, 1)}% were won by under 5 points in ${L.year}, far above the norm for most of the country's history.`,
+      share: `${num(L.marginal_pc, 1)}% (about one in ${Math.round(100 / L.marginal_pc)}) Malaysian seats now sit on a knife-edge: being won by under 5 points, in ${L.year}, far above the norm for most of the country's history.`,
       opts: {
         series: [{ label: "Marginal", color: C.red, focal: true, y: (r) => r.marginal_pc }],
         yLabel: "Share of marginal seats", fmt: (v) => num(v, 1) + "%", yMin: 0,
@@ -233,7 +233,7 @@ export function buildSpecs(rows) {
       id: "turnout", h2: "Turnout", q: "Do Malaysians show up?",
       now: num(L.turnout ?? 0) + "%",
       nowCap: `turnout in ${L.year}, the first election with automatic registration and voting at 18.`,
-      share: `Malaysian turnout has held between ${num(d.tLow.turnout ?? 0)}% and ${num(d.tPeak.turnout ?? 0)}% for seven decades, peaking at ${num(d.tPeak.turnout ?? 0)}% in ${d.tPeak.year}.`,
+      share: `Voter turnout in Malaysia has held between ${num(d.tLow.turnout ?? 0)}% and ${num(d.tPeak.turnout ?? 0)}% for seven decades, though these values may be overstated pre-2021 before automatic voter registration was introduced.`,
       opts: {
         series: [{ label: "Turnout", color: C.red, focal: true, y: (r) => r.turnout }],
         yLabel: "Voter turnout", fmt: (v) => num(v) + "%", yMin: 60, yMax: 90,

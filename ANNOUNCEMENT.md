@@ -6,7 +6,7 @@ Neutral, non-partisan, civic. Every figure is computed from the open data and re
 **Thevesh Thevananthan** (the Malaysian Election Corpus, CC0) prominently. **Confirm the `@Thevesh`
 handle before posting.** Do not post anything without the user's go-ahead.
 
-Images to attach live in `announcement-assets/` (the 12 section cards, in narrative order, plus the
+Images to attach live in `announcement-assets/` (the 14 section cards, in narrative order, plus the
 default dashboard card). Each thread post below notes which plot(s) to attach.
 
 ---
@@ -15,10 +15,11 @@ default dashboard card). Each thread post below notes which plot(s) to attach.
 
 **1/ (hook — attach `00-dashboard.png`)**
 
-How healthy is Malaysia's democracy?
+We get a check-up for our bodies every year. When did we last check the health of our democracy?
 
-We built **Nadi Demokrasi** — a single page that measures seven decades of general elections (1955–2022)
-with 14 standard political-science indicators. No hot takes, just numbers, every formula shown. 🧵
+**Nadi Demokrasi** takes the vital signs of Malaysia's — seven decades of general elections (1955–2022),
+measured with 14 standard political-science indicators, on one page. No hot takes, just numbers, every
+formula shown. 🧵
 
 **2/ Votes vs. seats (attach `01-disproportionality.png`, `02-seat-bonus.png`, `03-malapportionment.png`)**
 
@@ -57,16 +58,17 @@ on anyone.
 
 The projects only *visualise* the hard part: **@Thevesh**'s Malaysian Election Corpus
 ([electiondata.my](https://electiondata.my)) — ~4 years of curated, CC0, peer-reviewed (*Nature*
-Scientific Data) results. Every number on the page is recomputed from that data, so it updates itself.
+Scientific Data) results. Every number is computed from that data by open scripts — nothing is
+hand-entered — and each indicator ships with its formula and its limitations.
 
-Explore it — free, no login, mobile-friendly. Each indicator carries its formula and caveats:
+Explore it — free, no login, mobile-friendly:
 👉 https://zachtheyek.github.io/nadi-demokrasi/
 
 ---
 
 ## LinkedIn — single post
 
-**How healthy is Malaysia's democracy? We tried to answer with numbers, not opinions.**
+**We get an annual check-up for our bodies. When did we last check the health of our democracy?**
 
 *Nadi Demokrasi* ("the pulse of democracy") is a free, single-page dashboard that measures seven decades
 of Malaysian general elections (1955–2022) using fourteen standard political-science indicators —

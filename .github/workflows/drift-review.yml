@@ -98,17 +98,21 @@ jobs:
             REPO: ${{ github.repository }}
             NEW MECo COMMIT: ${{ steps.guard.outputs.meco_sha }}
             The freshly-computed figures are in `public/data/indicators.json` (already regenerated
-            from the new data in a prior step — read it for the current numbers). The prose lives in
-            `src/main.ts` (the `sections()` function) and `README.md`.
+            from the new data in a prior step — read it for the current numbers). The hand-written
+            copy lives in three places: `src/main.ts` (the `prose` map in `sections()` — bodies,
+            notes, methods), `src/chartkit.mjs` (the `share:` X-summary strings in `buildSpecs`, which
+            carry a little hand-written framing), and `README.md`. Everything else — headlines, chart
+            points, callouts, annotations — is templated and self-corrects.
 
             ## Task
             1. Read `CLAUDE.md` in full — especially the **Drift contract** section. It lists exactly
                which hand-written claims can go stale and how to check each against the data. Follow
                it; it is the source of truth for this job.
-            2. Read `public/data/indicators.json` (the new figures) and `src/main.ts`. For each item
-               in the drift contract, decide whether the current wording is still true under the new
-               numbers. Most prose is templated and needs no change — touch only what actually
-               contradicts the data or reads wrong for the newest election.
+            2. Read `public/data/indicators.json` (the new figures), then `src/main.ts` and the
+               `share:` strings in `src/chartkit.mjs`. For each item in the drift contract, decide
+               whether the current wording is still true under the new numbers. Most copy is templated
+               and needs no change — touch only what actually contradicts the data or reads wrong for
+               the newest election.
             3. Make the minimal edits needed, in the house voice (see CLAUDE.md → "House rules"):
                neutral and descriptive, colored highlight spans (not bold), credit intact, equations
                still numbered sequentially, every chart still standing on its own. Do NOT hand-code a

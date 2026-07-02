@@ -67,10 +67,12 @@ with `MECO_OUT`). `public/data/` and `dist/` are generated, never committed.
 ## Drift contract (READ before a drift review)
 
 When the data changes, the templated layer self-corrects. Do **not** touch it. The templated layer
-is now **`buildSpecs()` in `src/chartkit.mjs`** (headings + chart options: `now`, `nowCap`, `share`,
-series, points, callouts, reference lines) plus the derivations in `sections()`; the hand-written
-prose lives in the `prose` map in `sections()` (`src/main.ts`). Check only the hand-written claims,
-each against `public/data/indicators.json`:
+is **`buildSpecs()` in `src/chartkit.mjs`** (headings + chart options: `now`, `nowCap`, series,
+points, callouts, reference lines) plus the derivations in `sections()`. The **hand-written** copy is
+in two spots — check both: the `prose` map in `sections()` (`src/main.ts`: bodies, notes, methods),
+and the **`share:` X-summary strings in `buildSpecs()` (`src/chartkit.mjs`)** — their numbers are
+templated but the framing (e.g. "PN surged and BN collapsed", "on par with the largest we've seen")
+is hand-written and can go stale. Check every hand-written claim against `public/data/indicators.json`:
 
 **Templated — leave alone:** every headline `now`, chart point, callout, peak/dip/annotation; the
 minority-win count; the two-thirds-lost year; `top_blocs` names ("three biggest blocs — …"); the

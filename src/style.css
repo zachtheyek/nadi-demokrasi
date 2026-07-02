@@ -34,10 +34,15 @@ section.ind:first-of-type { border-top: 0; }
 .ind-head { position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .ind h2 { font-family: "Space Grotesk", sans-serif; font-size: clamp(24px, 6vw, 33px); font-weight: 700; letter-spacing: -.01em; line-height: 1.1; }
 .ind .q { color: var(--accent2); font-style: italic; font-size: 17px; margin-top: 6px; }
-/* GitHub-style: a link anchor tucked in the left gutter, revealed on hover */
-.anchor { position: absolute; left: -1.35em; top: .12em; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 20px; line-height: 1; text-decoration: none; color: var(--muted); opacity: 0; transition: opacity .12s; }
+/* GitHub-style: a link-icon anchor tucked in the left gutter, revealed on hover */
+.anchor { position: absolute; left: -26px; top: 6px; display: inline-flex; text-decoration: none; color: var(--muted); opacity: 0; transition: opacity .12s; }
+.linkico { width: 15px; height: 15px; display: block; }
 .ind:hover .anchor, .method-sec:hover .anchor, .anchor:focus { opacity: .6; }
 .anchor:hover { opacity: 1; color: var(--accent); }
+/* narrow screens have no left gutter — pull the anchor in so the whole icon stays on-screen */
+@media (max-width: 760px) { .anchor { left: -19px; } }
+/* touch devices have no hover: show the anchor and give it a big tap target */
+@media (hover: none) { .anchor { opacity: .5; padding: 9px; margin: -9px; } }
 /* the Method & limitations heading gets the same gutter # link as the sections */
 .mhead { position: relative; }
 .sectbar { display: flex; align-items: center; gap: 8px; flex: none; margin-top: 6px; }
@@ -47,13 +52,15 @@ section.ind:first-of-type { border-top: 0; }
 /* leading glyph (↓ Data, ❝ Cite) — a touch more air than a bare space */
 .bico { display: inline-block; margin-right: 7px; }
 
-/* headline number + caption: caption vertically centered against the big number */
-.bignow { font-family: "Space Grotesk", sans-serif; display: flex; align-items: center; gap: 14px; margin: 18px 0 6px; flex-wrap: wrap; }
-.bignow .v { font-size: 52px; font-weight: 700; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
-.bignow .cap { font-size: 14px; color: var(--muted); max-width: 24em; }
+/* headline number + caption: the caption always sits to the RIGHT of the big number, vertically
+   centred against it, and flexes with the screen width (never wraps below). It shrinks between a
+   min and a max (max = the desktop width) so it doesn't get silly on extreme aspect ratios. */
+.bignow { font-family: "Space Grotesk", sans-serif; display: flex; align-items: center; gap: 14px; margin: 18px 0 6px; flex-wrap: nowrap; }
+.bignow .v { font-size: 52px; font-weight: 700; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; flex: none; }
+.bignow .cap { flex: 1 1 auto; min-width: min(9em, 45%); max-width: 24em; font-size: 14px; color: var(--muted); }
 
 .chartbox { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 14px 8px; margin: 20px 0; box-shadow: 0 1px 0 rgba(0,0,0,.02); }
-.chartbox svg { width: 100%; display: block; overflow: visible; }
+.chartbox svg { width: 100%; height: auto; display: block; overflow: visible; }
 
 .ind p.body { font-size: 17px; margin-top: 14px; }
 /* colored highlights instead of bold — classy, neutral, palette-matched */

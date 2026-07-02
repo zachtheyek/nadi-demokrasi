@@ -1,7 +1,7 @@
 """
 Nadi Demokrasi — reproducible democracy indicators
 ===================================================
-Computes, for every Malaysian FEDERAL general election (GE-00 1955 → GE-15 2022),
+Computes, for every Malaysian FEDERAL general election (GE-00 1955 → ),
 a small set of standard political-science indicators of the party system, with
 fully-stated formulae and unit choices. The output is meant to be citable.
 
@@ -223,35 +223,37 @@ rows_sorted = sorted(rows, key=lambda r: r["year"])
 # reproduce every figure on the page. Regenerated on each run.
 import zipfile
 from datetime import date, timezone, datetime
-readme = f"""Nadi Demokrasi — reproducible democracy indicators for Malaysia
-================================================================
+readme = f"""Nadi Demokrasi — reproducible indicators for Malaysia's democracy
+=================================================================
 Generated: {datetime.now(timezone.utc).date().isoformat()}
 
 What this bundle is
-  This is the DATA behind the dashboard, plus the one script that produces it.
-  compute_indicators.py does NOT draw any charts — it is only the bridge that turns the
-  Malaysian Election Corpus (MECo) into the small indicators table the dashboard reads. The
-  plots you see on the site are rendered separately, in the browser (and for the share cards),
-  entirely from indicators.json below.
-    MECo (raw results)  ->  compute_indicators.py  ->  indicators.{{csv,json}}  ->  the charts
-  Nothing on the page is hand-entered.
+  This pack contains the data behind the dashboard (https://zachtheyek.github.io/nadi-demokrasi/),
+  including the scripts used to perform the analysis. Note that the plots on the dashboard are
+  rendered separately in the browser using this exact data. See
+  https://github.com/zachtheyek/nadi-demokrasi for more info
+
+    MECo (raw results)  ->  *.py scripts  ->  indicators.{{csv,json}}  ->  the charts (browser)
 
 Contents
   indicators.csv          one row per federal general election (1955- ), flat table
   indicators.json         the same rows, plus each election's top blocs by seats
-  compute_indicators.py   the exact script that turned MECo into the table (no plotting)
-  compute_compactness.py  precomputes district-shape compactness from boundary maps (occasional)
-  compactness.json        its output (mean Polsby-Popper per delimitation), an input to the above
+  compute_indicators.py   the script used to bridge MECo data with the above results
+  compute_compactness.py  precomputes district-shape compactness from boundary maps
+  compactness.json        the outputs (mean Polsby-Popper per delimitation) from
+                          compute_compactness.py, used as input into compute_indicators.py
 
 Reproduce the table
-  1. Clone the data foundation next to this folder:
+  1. Clone the data foundation next to this directory:
        git clone https://github.com/zachtheyek/meco-data
-  2. pip install pandas pyarrow numpy
-  3. mkdir -p data && cp compactness.json data/   # compute_indicators.py reads data/compactness.json
-  4. python compute_indicators.py                 # writes public/data/indicators.{{csv,json}}
-     (or point it elsewhere with MECO_OUT=/path/to/meco-data/out)
-  compactness.json rarely changes; regenerate it with compute_compactness.py only after a new
-  redelineation, pointing MAPS_DIR at the delimitation boundary GeoJSONs.
+  2. In your environment manager of choice, run:
+       pip install pandas pyarrow numpy
+  3. mkdir -p data && cp compactness.json data/  # compute_indicators.py reads data/compactness.json
+  4. python compute_indicators.py                # writes public/data/indicators.{{csv,json}}
+       (or point it elsewhere with MECO_OUT=/path/to/meco-data/out)
+
+  Note, compactness.json rarely changes; regenerate it with compute_compactness.py only after a new
+  redelineation, pointing MAPS_DIR at the new delimitation boundary GeoJSONs.
 
 Source & credit
   All underlying data is the Malaysian Election Corpus (MECo) by Thevesh Thevananthan,

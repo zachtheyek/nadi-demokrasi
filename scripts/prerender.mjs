@@ -71,9 +71,9 @@ for (const sp of specs) {
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="${esc(title)}"/>
 <meta property="og:description" content="${esc(summary)}"/>
-<meta property="og:image" content="${base}/og/s/${sp.id}.png?v=3"/>
+<meta property="og:image" content="${base}/og/s/${sp.id}.png?v=4"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="${base}/og/s/${sp.id}.png?v=3"/>
+<meta name="twitter:image" content="${base}/og/s/${sp.id}.png?v=4"/>
 <link rel="canonical" href="${base}/#${sp.id}"/>
 <meta http-equiv="refresh" content="0; url=../../#${sp.id}"/>
 </head><body style="font-family:sans-serif;padding:40px">Redirecting to <a href="../../#${sp.id}">${esc(sp.h2)}</a>…</body></html>`);

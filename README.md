@@ -6,7 +6,7 @@ of political science.
 
 🔗 **Live:** https://zachtheyek.github.io/nadi-demokrasi/
 
-![Nadi Demokrasi](https://zachtheyek.github.io/nadi-demokrasi/og-default.png)
+![Nadi Demokrasi](https://zachtheyek.github.io/nadi-demokrasi/og-default.png?v=4)
 
 ## The fourteen indicators
 
@@ -110,31 +110,33 @@ committed `data/compactness.json` (by `scripts/compute_compactness.py`, which ne
 GeoJSONs — boundaries change only ~once a decade). Data downloads (CSV + JSON + both scripts) are
 linked from the page.
 
-## Data & self-update
+## Data & refresh (human-gated)
 
-`public/data/` is **generated, not committed** (it is git-ignored). The site rebuilds
-itself from the shared MECo foundation with no human in the loop:
+`public/data/` is **generated, not committed** (git-ignored) — the deploy recomputes it from the
+MECo foundation. Unlike the sibling projects, **Nadi Demokrasi does not auto-publish new data**:
+each refresh needs editorial curation (the prose, the analysis, the chart annotations), so a new
+election is always reviewed by a human before it goes live.
 
-- **`meco-data`** auto-refreshes from the upstream corpus **weekly** (Sun 20:07 UTC). If
-  the upstream results change, it rebuilds `out/*.parquet` and commits.
-- **This repo's `deploy.yml`** runs **weekly** (Sun 20:47 UTC), just after. It only
-  rebuilds if the MECo foundation actually moved since the last deploy (it compares
-  `meco-data`'s commit against the `data-version.txt` stamped into the live site);
-  otherwise it does nothing. Every push and manual run always rebuilds.
+- **`meco-data`** auto-refreshes from the upstream corpus **weekly**; if the results change it
+  rebuilds `out/*.parquet` and commits.
+- **`deploy.yml`** (on push + manual dispatch) builds the site **pinned to the MECo commit in
+  `DATA_VERSION`** — the version the prose was last reconciled against, *not* meco-data's HEAD. So an
+  ordinary code push can never publish unreconciled data.
+- **`drift-review.yml`** runs **weekly**: if meco-data has moved past `DATA_VERSION`, it regenerates
+  the figures, runs Claude to reconcile the hand-written copy against the new numbers, bumps
+  `DATA_VERSION`, and opens **one pull request**. **Merging that PR is what publishes the new data** —
+  so you always review a new election first. In steady state (no new data) it is a no-op.
 
-**So in steady state there is nothing to do.** New election → `meco-data` picks it up →
-this site redeploys the same day, numbers, charts and prose all updated.
+**When a human is needed:**
 
-**When a human *is* needed** (rare — only when an Action emails you a failed run):
-
-| Situation | One-liner |
+| Situation | What to do |
 |-----------|-----------|
-| Force a data refresh now | `make refresh` *(run in the `meco-data` repo)* |
-| Upstream schema broke the build | fix `meco-data`'s `pipeline.py`, or wait a week |
-| Force this site to rebuild | re-run **Deploy to GitHub Pages** (`workflow_dispatch`) or push |
+| A new election / upstream correction | Review & merge the drift-review PR — that *is* the refresh |
+| Force the data-change check now | re-run **Claude Drift Review** (`workflow_dispatch`) |
+| Republish the current (reconciled) data | re-run **Deploy to GitHub Pages** (`workflow_dispatch`) or push |
+| Upstream schema broke the build | fix `meco-data`'s `pipeline.py` |
 
-GitHub's built-in failed-run emails are the alerting; there is no separate "run this now"
-step in normal operation.
+GitHub's failed-run emails are the alerting.
 
 ## Cite
 

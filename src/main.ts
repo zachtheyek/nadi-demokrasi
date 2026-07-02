@@ -14,6 +14,8 @@ const ORCID = "0000-0002-2532-4883";
 // the X (formerly Twitter) wordmark, used in place of the letter "X" on share buttons
 const X_ICON = `<svg class="xlogo" viewBox="0 0 24 24" aria-label="X" role="img"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
 const GH_ICON = `<svg class="ghlogo" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
+// link (chain) icon for the per-section "copy link" anchor
+const LINK_ICON = `<svg class="linkico" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25Zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0Z"/></svg>`;
 const app = document.getElementById("app")!;
 
 interface Bloc { label: string; seats: number; seat_pc: number; }
@@ -50,6 +52,8 @@ tip.className = "tooltip";
 document.body.appendChild(tip);
 function showTip(html: string, x: number, y: number) { tip.innerHTML = html; tip.style.opacity = "1"; tip.style.left = Math.min(x + 12, innerWidth - 230) + "px"; tip.style.top = (y - 10) + "px"; }
 function hideTip() { tip.style.opacity = "0"; }
+// dismiss the info card the moment the reader starts scrolling (mobile taps otherwise leave it stuck)
+addEventListener("scroll", () => { if (tip.style.opacity === "1") { hideTip(); document.querySelectorAll(".hoverdots").forEach((h) => (h.innerHTML = "")); } }, { passive: true });
 
 /* ---------- toast (copy feedback) ---------- */
 const toast = document.createElement("div");
@@ -77,11 +81,14 @@ interface ChartOpts {
   gapFill?: boolean; gap?: GapC;
 }
 
+// Fixed design size — the chart is always drawn at the desktop width and scaled to fit its box via
+// the SVG viewBox (CSS width:100%; height:auto). This keeps annotation spacing/de-collision identical
+// on every device (desktop stays pixel-for-pixel; narrow/vertical-mobile just renders the same chart
+// smaller, instead of re-laying-out into a compressed, colliding mess).
+const CHART_W = 688, CHART_H = 310;
 function renderChart(host: HTMLElement, o: ChartOpts) {
-  const W = Math.max(300, host.clientWidth);
-  const H = Math.min(310, Math.max(240, W * 0.56));
-  const { g, x, y } = chartSVG(ROWS, o, W, H);
-  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${o.yLabel}">${g}<g class="hoverdots"></g></svg>`;
+  const { g, x, y } = chartSVG(ROWS, o, CHART_W, CHART_H);
+  host.innerHTML = `<svg viewBox="0 0 ${CHART_W} ${CHART_H}" role="img" aria-label="${o.yLabel}">${g}<g class="hoverdots"></g></svg>`;
   const hg = host.querySelector(".hoverdots")!;
   // hovering any point highlights ALL series at that year (a dot on each) and shows one unified card
   const showAt = (year: number, cx: number, cy: number) => {
@@ -315,6 +322,7 @@ function render() {
     <div class="herobtns">
       <button class="btn" id="shareBtn">${X_ICON} Share</button>
       <a class="btn" href="${BASE}data/nadi-demokrasi-data.zip" download><span class="bico">↓</span>Data</a>
+      <a class="btn" href="https://github.com/zachtheyek/nadi-demokrasi" target="_blank" rel="noopener">${GH_ICON} Source</a>
       <button class="btn" id="citeBtn"><span class="bico">❝</span>Cite</button>
     </div>
   </div></header>
@@ -325,7 +333,7 @@ function render() {
     ${secs.map((s, i) => `
       <section class="ind" id="${s.id}">
         <div class="ind-head">
-          <a class="anchor" href="#${s.id}" data-link="${s.id}" title="Copy link to this section" aria-label="Copy link to this section">#</a>
+          <a class="anchor" href="#${s.id}" data-link="${s.id}" title="Copy link to this section" aria-label="Copy link to this section">${LINK_ICON}</a>
           <div><h2>${s.h2}</h2><div class="q">${s.q}</div></div>
           ${sectbar(s)}
         </div>
@@ -337,7 +345,7 @@ function render() {
       </section>`).join("")}
 
     <div class="method-sec" id="limitations">
-      <div class="mhead"><a class="anchor" href="#limitations" data-link="limitations" title="Copy link to this section" aria-label="Copy link to this section">#</a><h2 class="sans">Method &amp; limitations</h2></div>
+      <div class="mhead"><a class="anchor" href="#limitations" data-link="limitations" title="Copy link to this section" aria-label="Copy link to this section">${LINK_ICON}</a><h2 class="sans">Method &amp; limitations</h2></div>
       <p>Every figure here is computed from official results by one short, open script. The unit of analysis is each election's <b>blocs</b>: a candidate's coalition where they ran in one, otherwise their party (so non-aligned parties are their own bloc; independents share one). Vote shares use valid votes; seat shares use the federal seats of each election — a number that itself grew from ${F.n_seats} in ${F.year} to ${L.n_seats} in ${L.year} as the country and its parliament expanded.</p>
       <h3 class="sans">What these indicators do <em>not</em> capture</h3>
       <ul>
@@ -366,30 +374,30 @@ function render() {
   secs.forEach((s) => renderChart(app.querySelector(`[data-sec="${s.id}"]`)!, s.opts));
   document.getElementById("citeBtn")?.addEventListener("click", openCite);
   document.getElementById("citeBtn2")?.addEventListener("click", openCite);
-  const shareAll = () => shareOnX(`How healthy is Malaysia's democracy? Nadi Demokrasi puts ${secs.length} political-science indicators across ${ROWS.length} general elections (${F.year}–${L.year}) — disproportionality, malapportionment, fragmentation, volatility, representation, turnout — on one page. Every formula shown, every number reproducible.`, SITE);
+  const shareAll = () => shareOnX(`When was the last time you checked in on the health of your democracy? Nadi Demokrasi looks at ${ROWS.length} general elections (${F.year}–${L.year}) using ${secs.length} political-science indicators — measuring disproportionality, fragmentation, volatility, turnout, and representation — in a single intuitive dashboard. Every formula shown, every number reproducible.\n\n${SITE}`);
   document.getElementById("shareBtn")?.addEventListener("click", shareAll);
   document.getElementById("shareBtn2")?.addEventListener("click", shareAll);
-  // per-section copy-link + X share
+  // per-section copy-link + X share. Clicking the anchor only tags the URL with the section and
+  // copies the link — it does NOT scroll (so it can't fight the reader's own scrolling).
   app.querySelectorAll<HTMLElement>(".anchor").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault();
     const id = a.dataset.link!;
     history.replaceState(null, "", "#" + id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     copy(SITE + "#" + id, "Section link copied");
   }));
   app.querySelectorAll<HTMLElement>(".sharex").forEach((b) => b.addEventListener("click", () => {
     const s = secs.find((x) => x.id === b.dataset.share)!;
-    // share the per-section page (its OG image is this section's plot), so the tweet embeds the chart;
-    // lead with the section's headline question, exactly as shown on the page
-    shareOnX(s.q + " " + s.share + " — via Nadi Demokrasi.", SITE + "s/" + s.id + "/");
+    // headline question, then the summary, then the section's /s/ page (its OG image is this section's
+    // plot, and it redirects to the section) — so the tweet embeds the matching chart card
+    shareOnX(`${s.q}\n\n${s.share} — via Nadi Demokrasi.\n\n${SITE}s/${s.id}/`);
   }));
   // deep-link on load (content is fetched async, so scroll after render)
   if (location.hash) { const el = document.getElementById(location.hash.slice(1)); if (el) setTimeout(() => el.scrollIntoView(), 40); }
 }
 
-function shareOnX(text: string, url: string) {
-  const u = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-  window.open(u, "_blank", "noopener");
+function shareOnX(text: string) {
+  // the URL is embedded in the text (so we control its placement after a blank line); X unfurls it
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank", "noopener");
 }
 async function copy(txt: string, msg: string) {
   try { await navigator.clipboard.writeText(txt); showToast(msg); } catch { showToast("Copy failed"); }
@@ -450,8 +458,9 @@ function openCite() {
   citeBox.querySelectorAll<HTMLButtonElement>(".copy").forEach((b) => b.addEventListener("click", () => copy(b.dataset.k === "apa" ? apa : bib, "Citation copied")));
 }
 
-let rt: any;
-addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+// No resize re-render: charts scale via the SVG viewBox and the layout is CSS-responsive, so a
+// full re-render on resize is unnecessary — and on mobile it fired on every address-bar show/hide,
+// re-running the deep-link scroll (snapping back to a jumped section) and eating taps mid-render.
 
 (async () => {
   app.innerHTML = `<div class="loading">Loading indicators…</div>`;

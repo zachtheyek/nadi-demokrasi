@@ -14,42 +14,39 @@ const num = (v, d = 0) => Number(v).toFixed(d);
 // match the page's hero (which sets the deck in Georgia)
 const T = (x, y, s, sz, col, w = 400, extra = "", ff = "Space Grotesk") => `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${w}" fill="${col}" font-family="${ff}" ${extra}>${esc(s)}</text>`;
 
-// one indicator tile: label, latest value, a sparkline, and the first→latest movement
-function tile(x, y, w, h, t) {
+// one indicator tile: label, latest value, and a sparkline (nothing listed below it)
+function tile(x, y, w, t) {
   const pts = rows.map((r) => r[t.key]).filter((v) => v != null);
   const lo = Math.min(...pts), hi = Math.max(...pts), span = hi - lo || 1;
-  const sx = 0, sw = w, sTop = y + 66, sH = 58;
-  const px = (i) => x + sx + i * (sw / (pts.length - 1));
+  const sTop = y + 80, sH = 122;
+  const px = (i) => x + i * (w / (pts.length - 1));
   const py = (v) => sTop + sH - (v - lo) / span * sH;
   const path = pts.map((v, i) => `${i ? "L" : "M"}${px(i).toFixed(1)},${py(v).toFixed(1)}`).join("");
   const ex = px(pts.length - 1), ey = py(pts[pts.length - 1]);
   return `
-    ${T(x, y + 20, t.label, 20, C.muted, 600)}
-    ${T(x, y + 54, t.fmt(L[t.key]), 40, C.ink, 700)}
+    ${T(x, y + 22, t.label, 20, C.muted, 600)}
+    ${T(x, y + 62, t.fmt(L[t.key]), 44, C.ink, 700)}
     <path d="${path}" fill="none" stroke="${C.red}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="4" fill="${C.red}"/>
-    ${T(x, y + 148, `${t.fmt(F[t.key])} → ${t.fmt(L[t.key])}  ·  ${F.year}–${L.year}`, 17, C.muted)}`;
+    <circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="4.5" fill="${C.red}"/>`;
 }
 
-const d1 = (v) => num(v, 1);
-const pp = (v) => (v >= 0 ? "+" : "") + num(v, 1);
-const pct1 = (v) => num(v, 1) + "%";
+const d0 = (v) => num(v, 0), d1 = (v) => num(v, 1), pct0 = (v) => num(v, 0) + "%", pct1 = (v) => num(v, 1) + "%";
 const tiles = [
   { label: "Disproportionality", key: "gallagher", fmt: d1 },
-  { label: "Winner's bonus", key: "winner_seat_bonus", fmt: pp },
-  { label: "Effective parties", key: "enp_seats", fmt: d1 },
   { label: "Malapportionment", key: "malapportionment", fmt: pct1 },
+  { label: "Volatility", key: "volatility", fmt: d0 },
+  { label: "Turnout", key: "turnout", fmt: pct0 },
 ];
-const ox = 64, tw = 250, gap = 22, ty = 316;
+const ox = 64, tw = 250, gap = 22, ty = 320;
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="${C.paper}"/>
   ${T(ox, 70, "NADI DEMOKRASI · THE PULSE OF DEMOCRACY", 22, C.red, 700, 'letter-spacing="5"')}
   ${T(ox, 150, "Malaysia's democracy, in numbers.", 62, C.ink, 700, 'letter-spacing="-1"')}
-  ${T(ox, 210, "Seven decades of general elections, measured — twelve political-science indicators", 25, C.muted, 400, "", "Gelasio")}
-  ${T(ox, 244, "across sixteen elections, every formula open and every number reproducible.", 25, C.muted, 400, "", "Gelasio")}
-  ${tiles.map((t, i) => tile(ox + i * (tw + gap), ty, tw, 170, t)).join("")}
-  ${T(ox, 600, "16 general elections · 1955–2022 · Data: Malaysian Election Corpus (Thevesh)", 21, C.muted)}
+  ${T(ox, 210, "Seven decades of general elections, measured — fourteen political-science indicators", 25, C.muted, 400, "", "Gelasio")}
+  ${T(ox, 244, "across sixteen elections, every formula listed and every number reproducible.", 25, C.muted, 400, "", "Gelasio")}
+  ${tiles.map((t, i) => tile(ox + i * (tw + gap), ty, tw, t)).join("")}
+  ${T(ox, 600, `${rows.length} general elections · ${F.year}–${L.year} · Data: Malaysian Election Corpus (Thevesh)`, 21, C.muted)}
 </svg>`;
 
 const fontBuffers = [

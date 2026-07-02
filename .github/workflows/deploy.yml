@@ -1,12 +1,14 @@
 name: Deploy to GitHub Pages
 
-# Builds the site from the live MECo foundation (zachtheyek/meco-data) and publishes it.
+# Builds the site from the MECo foundation (zachtheyek/meco-data) and publishes it.
 #
-# Deploys run ONLY on push (incl. merging a drift-review PR) and manual dispatch — there is no
-# weekly schedule here. New upstream *data* reaches the site only through the reconciliation PR
-# opened by `drift-review.yml`, so a general election can never auto-publish stale prose: a human
-# reviews and merges the PR, and that merge is what triggers this deploy. `public/data` is
-# generated here, not committed.
+# Deploys run ONLY on push (incl. merging a drift-review PR) and manual dispatch — no schedule.
+# CRUCIALLY, the build is pinned to the MECo commit recorded in DATA_VERSION — the version the prose
+# was last reconciled against — NOT to meco-data's HEAD. So new upstream *data* can never reach the
+# site through an ordinary code push: it only moves when DATA_VERSION is bumped, and that bump only
+# happens inside the reconciliation PR opened by `drift-review.yml`. A human reviews and merges that
+# PR (curating the text, analysis and graphs on every refresh), and that merge is what publishes the
+# new data. `public/data` is generated here, not committed.
 on:
   push:
     branches: [main]
@@ -28,9 +30,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: nadi-demokrasi
+      # Pin the data foundation to the human-reconciled commit (DATA_VERSION), never HEAD — this is
+      # what makes every data refresh human-gated: unreconciled upstream data cannot slip out.
+      - name: Read the reconciled data version
+        id: dv
+        run: echo "sha=$(tr -d '[:space:]' < nadi-demokrasi/DATA_VERSION)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
           repository: zachtheyek/meco-data   # the shared data foundation (public)
+          ref: ${{ steps.dv.outputs.sha }}    # pinned to DATA_VERSION, not HEAD
           path: meco-data
       - uses: actions/setup-python@v5
         with:

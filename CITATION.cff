@@ -4,12 +4,19 @@ message: >-
   the Malaysian Election Corpus (MECo) by Thevesh Thevananthan.
 title: "Nadi Demokrasi: Malaysia's Democracy in Numbers"
 abstract: >-
-  A reproducible, citable single-page dashboard that measures seven decades of Malaysian federal
-  general elections (1955–2022) with fourteen standard political-science indicators —
-  disproportionality, malapportionment, map bias and district compactness (gerrymandering),
-  the winner's seat bonus, effective number of parties, multi-cornered contests, volatility,
-  seat turnover, marginal seats, turnout, and the descriptive representation of women and ethnic
-  communities. Every figure is computed from open data; nothing is hand-entered.
+  A reproducible, citable single-page dashboard measuring seven decades of Malaysian federal general
+  elections (1955–2022) with fourteen standard political-science indicators, in narrative order:
+  vote-to-seat disproportionality (Gallagher), the winner's seat bonus, malapportionment
+  (Samuels–Snyder), map bias and district compactness (Polsby–Popper) as measures of the
+  gerrymandering question, the winning bloc's vote share, the effective number of parties
+  (Laakso–Taagepera), multi-cornered contests, electoral volatility (Pedersen), seat turnover,
+  marginal seats, turnout, and the descriptive representation of women and ethnic communities.
+  Read together, the indicators tell a coherent story: first-past-the-post long turned modest vote
+  leads into commanding majorities (a seat bonus once worth +27 points, disproportionality above 20),
+  but that mechanical reward has since collapsed to about zero — even as unequal district boundaries
+  (malapportionment at a record ~18%) now tilt against whoever wins the popular vote, and the party
+  system has fragmented from a one-and-a-half-party dominance to a record ~3.6 effective parties.
+  Every figure is computed from the Malaysian Election Corpus (MECo).
 type: software
 authors:
   - family-names: Yek
@@ -22,10 +29,18 @@ keywords:
   - Malaysia
   - elections
   - electoral systems
+  - first-past-the-post
   - political science
+  - psephology
+  - comparative politics
+  - disproportionality
   - malapportionment
   - gerrymandering
+  - electoral volatility
+  - voter turnout
+  - political representation
   - data visualization
+  - Malaysian Election Corpus
 references:
   - type: article
     title: "The Malaysian Election Corpus"
