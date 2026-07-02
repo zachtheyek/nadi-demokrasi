@@ -176,7 +176,7 @@ export function buildSpecs(rows) {
         ],
         yLabel: "Effective number of parties", fmt: (v) => num(v, 1), yMin: 0.8,
         // a dashed marker at ~1.5 through the BN decades, with a floating era label in clear space
-        yRefs: [{ at: 1.5, xTo: 2013, labelAt: { year: 1981, value: 1.58 }, label: "the 1.5-party era" }],
+        yRefs: [{ at: 1.5, xTo: 2013, labelAt: { year: 1980, value: 1.58 }, label: "the 1.5-party era" }],
         points: [{ year: d.enpLow.year, value: d.enpLow.enp_seats, tag: "one-party low", place: "right" }, { year: d.enpPeak.year, value: d.enpPeak.enp_seats, tag: "record" }],
       },
     },
@@ -197,7 +197,7 @@ export function buildSpecs(rows) {
       nowCap: `how much the vote shifted between blocs from the previous election, in ${L.year} — one of the largest realignments on record.`,
       share: `Malaysia's biggest electoral realignments by vote-share (Pedersen volatility): ${d.volTop.map((r) => r.year).sort((a, b) => a - b).join(", ")}${L.volatility === d.volTop[0].volatility ? "" : `, with ${L.year} among them`}.`,
       opts: {
-        series: [{ label: "Pedersen", color: C.teal, focal: true, y: (r) => r.volatility }],
+        series: [{ label: "Pedersen", color: C.red, focal: true, y: (r) => r.volatility }],
         yLabel: "Electoral volatility", fmt: (v) => num(v), yMax: Math.max(...rows.map((r) => r.volatility ?? 0)) * 1.35,
         xLines: at(rows, 2008) ? [{ year: 2008, label: `${yy(2008)} ${d.volContext[2008]}` }] : [],
         points: [
@@ -235,7 +235,7 @@ export function buildSpecs(rows) {
       nowCap: `turnout in ${L.year}, the first election with automatic registration and voting at 18.`,
       share: `Malaysian turnout has held between ${num(d.tLow.turnout ?? 0)}% and ${num(d.tPeak.turnout ?? 0)}% for seven decades, peaking at ${num(d.tPeak.turnout ?? 0)}% in ${d.tPeak.year}.`,
       opts: {
-        series: [{ label: "Turnout", color: C.gold, focal: true, y: (r) => r.turnout }],
+        series: [{ label: "Turnout", color: C.red, focal: true, y: (r) => r.turnout }],
         yLabel: "Voter turnout", fmt: (v) => num(v) + "%", yMin: 60, yMax: 90,
         // every election before automatic registration + Undi18 (in force 2021) counts ballots over
         // *registered* electors, so those figures overstate participation among all eligible adults
