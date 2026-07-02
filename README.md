@@ -6,7 +6,7 @@ of political science.
 
 🔗 **Live:** https://zachtheyek.github.io/nadi-demokrasi/
 
-![Nadi Demokrasi](https://zachtheyek.github.io/nadi-demokrasi/og-default.png?v=4)
+![Nadi Demokrasi](https://zachtheyek.github.io/nadi-demokrasi/og-default.png?v=5)
 
 ## The fourteen indicators
 

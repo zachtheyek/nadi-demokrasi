@@ -118,3 +118,10 @@ citation year range/date; the meta counts.
 
 Prefer widening a template over hard-coding a new number. Keep every edit neutral and in-voice, keep
 equations numbered 1..N, keep each chart standalone, and keep Thevesh's credit intact.
+
+**Fact-checking (drift reviews only).** During a drift review you may use `WebSearch`/`WebFetch` to
+sanity-check the historical/event references and "world-standard" thresholds against reality, and to
+surface supplementary context worth a maintainer's eye (a new election's official result + date, a
+redelineation, a party rename/merger). **Never write a web-sourced fact into the dashboard** — the
+page is computed from MECo alone. Put anything you find in the PR body under a `## Web fact-check`
+heading (with source links) for the human to weigh; it is a flag, not an edit.

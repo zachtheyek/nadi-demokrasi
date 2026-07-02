@@ -32,7 +32,7 @@ function card(sp) {
   // draw the chart small (website-scale fonts) then scale the whole group up so it reads crisply on
   // the card — identical geometry + annotations to the page, just zoomed
   const Wc = 820, Hc = 293, sc = 1.33, ox = 56, oy = 210;
-  const { g } = chartSVG(rows, sp.opts, Wc, Hc);
+  const { g } = chartSVG(rows, sp.opts, Wc, Hc, true);   // oblique=true: skew "italic" labels for resvg
   const numW = sp.now.length * 30 + 8;                 // rough width of the big headline number
   const capX = ox + numW + 20;
   const capLines = wrap(sp.nowCap, Math.max(30, Math.floor((W - 54 - capX) / 9.6)), 3);
@@ -71,9 +71,9 @@ for (const sp of specs) {
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="${esc(title)}"/>
 <meta property="og:description" content="${esc(summary)}"/>
-<meta property="og:image" content="${base}/og/s/${sp.id}.png?v=4"/>
+<meta property="og:image" content="${base}/og/s/${sp.id}.png?v=5"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:image" content="${base}/og/s/${sp.id}.png?v=4"/>
+<meta name="twitter:image" content="${base}/og/s/${sp.id}.png?v=5"/>
 <link rel="canonical" href="${base}/#${sp.id}"/>
 <meta http-equiv="refresh" content="0; url=../../#${sp.id}"/>
 </head><body style="font-family:sans-serif;padding:40px">Redirecting to <a href="../../#${sp.id}">${esc(sp.h2)}</a>…</body></html>`);

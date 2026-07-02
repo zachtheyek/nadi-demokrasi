@@ -107,9 +107,9 @@ function renderChart(host: HTMLElement, o: ChartOpts) {
   host.querySelectorAll(".dot").forEach((d) => {
     const el = d as SVGElement;
     const move = (ev: any) => {
-      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
-      showAt(+el.dataset.y!, cx, cy);
+      // document-space coords (pageX/pageY) so the absolute tip lands by the point even when zoomed
+      const t = ev.touches ? ev.touches[0] : ev;
+      showAt(+el.dataset.y!, t.pageX, t.pageY);
     };
     el.addEventListener("mouseenter", move);
     el.addEventListener("mousemove", move);
@@ -374,7 +374,7 @@ function render() {
   secs.forEach((s) => renderChart(app.querySelector(`[data-sec="${s.id}"]`)!, s.opts));
   document.getElementById("citeBtn")?.addEventListener("click", openCite);
   document.getElementById("citeBtn2")?.addEventListener("click", openCite);
-  const shareAll = () => shareOnX(`When was the last time you checked in on the health of your democracy? Nadi Demokrasi looks at ${ROWS.length} general elections (${F.year}–${L.year}) using ${secs.length} political-science indicators — measuring disproportionality, fragmentation, volatility, turnout, and representation — in a single intuitive dashboard. Every formula shown, every number reproducible.\n\n${SITE}`);
+  const shareAll = () => shareOnX(`When was the last time you checked in on the health of your democracy?\n\nNadi Demokrasi analyzes ${ROWS.length} general elections (${F.year}–${L.year}) using ${secs.length} political-science indicators — measuring disproportionality, fragmentation, volatility, turnout, and representation — in a single intuitive dashboard.\n\nEvery formula listed, every number reproducible.\n\n${SITE}?v=5`);
   document.getElementById("shareBtn")?.addEventListener("click", shareAll);
   document.getElementById("shareBtn2")?.addEventListener("click", shareAll);
   // per-section copy-link + X share. Clicking the anchor only tags the URL with the section and

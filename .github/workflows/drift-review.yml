@@ -118,6 +118,13 @@ jobs:
                still numbered sequentially, every chart still standing on its own. Do NOT hand-code a
                number that the code already computes — prefer widening a template over hard-coding.
             4. Update `README.md` if a stated figure there is now wrong.
+            4b. Optionally FACT-CHECK with the web (`WebSearch`/`WebFetch`): sanity-check the historical
+               and event references against the new data (e.g. a new election's official result and
+               date, a redelineation, party renames/mergers, a "world-standard" threshold), and note any
+               supplementary context worth considering. IMPORTANT: do NOT write web-sourced facts into
+               the dashboard — the page is computed from MECo only. Instead, record what you checked and
+               found in the PR body under a `## Web fact-check` heading (with source links), flagging
+               anything the maintainer should look at. If nothing warranted a lookup, say so briefly.
             5. Set the reconciliation stamp: write the new MECo commit to `DATA_VERSION`
                (`echo ${{ steps.guard.outputs.meco_sha }} > DATA_VERSION`). Do this even if no prose
                changed — the PR must always bump it so merging republishes the new data.
@@ -129,10 +136,13 @@ jobs:
                - `gh pr create` with a clear title, and a body whose FIRST line is the hidden dedup
                  marker `<!-- nadi-drift meco=${{ steps.guard.outputs.meco_sha }} -->`, then a short
                  summary: which drift-contract items you checked, what you changed and why (or
-                 "no prose drift — stamp bump only"), and a reminder that merging publishes the new data.
+                 "no prose drift — stamp bump only"), a `## Web fact-check` section (from step 4b, with
+                 source links, or "none needed"), and a reminder that merging publishes the new data.
 
             ## Available tools
             - `Read`, `Grep`, `Glob` to inspect CLAUDE.md, src/main.ts, README.md, public/data/indicators.json
+            - `WebSearch`, `WebFetch` to fact-check figures/events and look up supplementary context —
+              findings go in the PR body only, NEVER written into the dashboard
             - `Edit` to make the prose edits
             - `Bash(npm ci:*)`, `Bash(npm run build:*)` to verify the build compiles
             - `Bash(git checkout:*)`, `Bash(git add:*)`, `Bash(git commit:*)`, `Bash(git push:*)` to branch and commit
@@ -149,5 +159,5 @@ jobs:
             - Reference CLAUDE.md for anything unspecified. Do nothing outside this reconciliation.
 
           claude_args: |
-            --allowedTools "Read,Grep,Glob,Edit,Bash(npm ci:*),Bash(npm run build:*),Bash(git checkout:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(echo:*),Bash(gh pr create:*),Bash(gh pr list:*)"
+            --allowedTools "Read,Grep,Glob,Edit,WebSearch,WebFetch,Bash(npm ci:*),Bash(npm run build:*),Bash(git checkout:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(echo:*),Bash(gh pr create:*),Bash(gh pr list:*)"
             --model opus

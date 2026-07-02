@@ -239,7 +239,7 @@ export function buildSpecs(rows) {
         yLabel: "Voter turnout", fmt: (v) => num(v) + "%", yMin: 60, yMax: 90,
         // every election before automatic registration + Undi18 (in force 2021) counts ballots over
         // *registered* electors, so those figures overstate participation among all eligible adults
-        xBands: [{ from: 1955, to: 2021, label: "turnout overstated (pre-auto-registration)", fill: "rgba(107,98,86,.09)" }],
+        xBands: [{ from: 1955, to: 2021, label: "values likely overstated\n(before automatic registration)", hatch: "rgba(107,98,86,.42)" }],
         points: [{ year: d.tLow.year, value: d.tLow.turnout ?? 0, tag: "low", place: "below" }, { year: d.tPeak.year, value: d.tPeak.turnout ?? 0, tag: "peak" }, { year: L.year, value: L.turnout ?? 0, tag: "now", place: "below" }],
       },
     },
@@ -277,7 +277,7 @@ export function buildSpecs(rows) {
    Styling is INLINE (not CSS classes) so the identical markup renders in the browser and in resvg.
    Returns { g, x, y }: g is the inner SVG (drop into <svg>…</svg>), x/y are the scales the page uses
    to place hover dots. */
-export function chartSVG(rows, o, W, H) {
+export function chartSVG(rows, o, W, H, oblique = false) {
   const m = { t: 28, r: 96, b: 28, l: 38 };
   const years = rows.map((r) => r.year);
   const xMin = Math.min(...years), xMax = Math.max(...years);
@@ -300,14 +300,31 @@ export function chartSVG(rows, o, W, H) {
   };
   const FF = 'font-family="Space Grotesk"';
   const txt = (tx, ty, anchor, extra, s) => `<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" ${FF} ${extra}>${esc(s)}</text>`;
-  const reflab = (lx, ly, anchor, s) => txt(lx, ly, anchor, `fill="${C.muted}" font-size="10.5" font-style="italic"`, s);
+  // "italic" for chart labels: the browser synthesises an oblique for Space Grotesk (which ships no
+  // italic face); resvg does NOT synthesise, so on the OG cards (oblique=true) we skew explicitly to
+  // reproduce the same slant — keeping cards identical to the page.
+  const italic = (ly) => oblique ? `transform="translate(${(0.222 * ly).toFixed(2)},0) skewX(-12.5)"` : `font-style="italic"`;
+  const reflab = (lx, ly, anchor, s) => txt(lx, ly, anchor, `fill="${C.muted}" font-size="10.5" ${italic(ly)}`, s);
   const axt = (tx, ty, anchor, s) => txt(tx, ty, anchor, `fill="${C.muted}" font-size="11"`, s);
 
-  // shaded period bands (faintest layer); optional fill overrides the default neutral tint
-  (o.xBands || []).forEach((b) => {
+  // shaded period bands (faintest layer); `fill` overrides the tint, `hatch` draws diagonal stripes
+  (o.xBands || []).forEach((b, bi) => {
     const x0 = x(Math.max(b.from, xMin)), x1 = x(Math.min(b.to, xMax));
-    g += `<rect x="${x0.toFixed(1)}" y="${plotTop}" width="${(x1 - x0).toFixed(1)}" height="${(plotBot - plotTop).toFixed(1)}" fill="${b.fill || "rgba(107,98,86,.06)"}"/>`;
-    if (b.label) { const lx = (x0 + x1) / 2, ly = plotTop + 16; g += txt(lx, ly, "middle", `fill="${C.muted}" font-size="10.5" font-weight="600"`, b.label); reserveL(lx, b.label.length * 5.9, ly, "middle"); }
+    let fill = b.fill || "rgba(107,98,86,.06)";
+    if (b.hatch) {
+      const pid = `ndhatch${bi}`;
+      g += `<defs><pattern id="${pid}" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="${b.hatch}" stroke-width="1"/></pattern></defs>`;
+      fill = `url(#${pid})`;
+    }
+    g += `<rect x="${x0.toFixed(1)}" y="${plotTop}" width="${(x1 - x0).toFixed(1)}" height="${(plotBot - plotTop).toFixed(1)}" fill="${fill}"/>`;
+    if (b.label) {
+      const lx = (x0 + x1) / 2;
+      b.label.split("\n").forEach((ln, i) => {
+        const ly = plotTop + 16 + i * 13;
+        g += txt(lx, ly, "middle", `fill="${C.muted}" font-size="10.5" ${italic(ly)}`, ln);
+        reserveL(lx, ln.length * 5.9, ly, "middle");
+      });
+    }
   });
 
   // horizontal reference lines / bands — labels sit BELOW the line, left by default (right on request)
