@@ -176,7 +176,7 @@ export function buildSpecs(rows) {
         ],
         yLabel: "Effective number of parties", fmt: (v) => num(v, 1), yMin: 0.8,
         // a dashed marker at ~1.5 through the BN decades, with a floating era label in clear space
-        yRefs: [{ at: 1.5, xTo: 2013, labelAt: { year: 1978, value: 1.58 }, label: "the 1.5-party era" }],
+        yRefs: [{ at: 1.5, xTo: 2013, labelAt: { year: 1981, value: 1.58 }, label: "the 1.5-party era" }],
         points: [{ year: d.enpLow.year, value: d.enpLow.enp_seats, tag: "one-party low", place: "right" }, { year: d.enpPeak.year, value: d.enpPeak.enp_seats, tag: "record" }],
       },
     },
