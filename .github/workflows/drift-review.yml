@@ -9,9 +9,10 @@ name: Claude Drift Review
 # what publishes the new data (deploy.yml runs on push) — so a human always reviews before a new
 # election goes live. In steady state (no new data) this is a no-op.
 #
-# Auth: uses the ANTHROPIC_API_KEY repo secret (see README "Auto-refresh & drift review"). To use
-# a Claude subscription instead, swap the `anthropic_api_key` line for
-# `claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}`.
+# Auth: uses a Claude subscription via the CLAUDE_CODE_OAUTH_TOKEN repo secret (generated locally
+# with `claude setup-token`), so drift reviews + their web searches bill to the subscription, not the
+# pay-as-you-go API. To use the metered API instead, swap the `claude_code_oauth_token` line for
+# `anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}`.
 on:
   schedule:
     - cron: "52 20 * * 0"   # Sundays 20:52 UTC, after meco-data's 20:07 auto-refresh
@@ -85,7 +86,7 @@ jobs:
         if: steps.guard.outputs.go == 'true'
         uses: anthropics/claude-code-action@58dbe8ed6879f0d3b02ac295b20d5fdfe7733e0c # v1.0.85
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             ## Role
             You maintain the editorial copy of "Nadi Demokrasi", a reproducible Malaysian-election

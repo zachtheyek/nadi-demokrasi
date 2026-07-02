@@ -207,9 +207,11 @@ The **quantitative** layer self-updates; the **editorial** layer is reconciled b
   prompt) to reconcile the **hand-written** prose against the new numbers, bump `DATA_VERSION`, and
   **open a PR**. **Merging that PR is what publishes new data** — so a new election is always reviewed
   first. It no-ops when nothing moved; dedups on a `<!-- nadi-drift meco=<sha> -->` marker.
-- **Auth:** the workflow reads **`secrets.ANTHROPIC_API_KEY`** (the maintainer adds it via
-  `gh secret set ANTHROPIC_API_KEY --repo zachtheyek/nadi-demokrasi`). To use a Claude subscription
-  instead, swap the `anthropic_api_key` line for `claude_code_oauth_token`/`CLAUDE_CODE_OAUTH_TOKEN`.
+- **Auth:** the workflow reads **`secrets.CLAUDE_CODE_OAUTH_TOKEN`** — a Claude *subscription* token
+  (generate with `claude setup-token`, add via `gh secret set CLAUDE_CODE_OAUTH_TOKEN --repo
+  zachtheyek/nadi-demokrasi`), so drift runs + their web searches bill to the subscription, not the
+  metered API. To use the pay-as-you-go API instead, swap the `claude_code_oauth_token` line for
+  `anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}`.
 - **`CLAUDE.md` → "Drift contract"** is the spec the drift agent follows: it enumerates exactly what's
   **templated** (leave alone: all headline/chart/derived-prose numbers, top-bloc names, the
   conditional bonus caption, calm-year picks, citation range, etc.) vs **hand-written** (verify each:
@@ -319,7 +321,7 @@ Enabling Pages / deploy gotchas (once per repo) are in the collection HANDOFF (`
   a single number in multi-bloc FPTP (§10). If ever attempted, it'd need a defensible two-side
   framing + a swing model the corpus doesn't pin down.
 - **Turnout by age** — belongs in undi-generasi (needs voter rolls). Linked from limitations.
-- **Drift-review** needs `ANTHROPIC_API_KEY` set before it can open PRs (§7).
+- **Drift-review** needs `CLAUDE_CODE_OAUTH_TOKEN` set before it can open PRs (§7).
 - **`prerender.mjs` specs** duplicate `sections()` chart shapes — a future refactor could share a
   single source (would need to decouple `sections()` from the DOM/KaTeX imports so it can run in
   Node).
