@@ -176,7 +176,7 @@ export function buildSpecs(rows) {
         ],
         yLabel: "Effective number of parties", fmt: (v) => num(v, 1), yMin: 0.8,
         // a dashed marker at ~1.5 through the BN decades, with a floating era label in clear space
-        yRefs: [{ at: 1.5, xTo: 2013, labelAt: { year: 1978, value: 2.7 }, label: "the 1.5-party era" }],
+        yRefs: [{ at: 1.5, xTo: 2013, labelAt: { year: 1978, value: 1.7 }, label: "the 1.5-party era" }],
         points: [{ year: d.enpLow.year, value: d.enpLow.enp_seats, tag: "one-party low", place: "right" }, { year: d.enpPeak.year, value: d.enpPeak.enp_seats, tag: "record" }],
       },
     },
@@ -239,7 +239,7 @@ export function buildSpecs(rows) {
         yLabel: "Voter turnout", fmt: (v) => num(v) + "%", yMin: 60, yMax: 90,
         // every election before automatic registration + Undi18 (in force 2021) counts ballots over
         // *registered* electors, so those figures overstate participation among all eligible adults
-        xBands: [{ from: 1955, to: 2021, label: "overstated before auto-registration & Undi18", fill: "rgba(107,98,86,.09)" }],
+        xBands: [{ from: 1955, to: 2021, label: "turnout overstated, pre-auto-registration", fill: "rgba(107,98,86,.09)" }],
         points: [{ year: d.tLow.year, value: d.tLow.turnout ?? 0, tag: "low", place: "below" }, { year: d.tPeak.year, value: d.tPeak.turnout ?? 0, tag: "peak" }, { year: L.year, value: L.turnout ?? 0, tag: "now", place: "below" }],
       },
     },
@@ -307,7 +307,7 @@ export function chartSVG(rows, o, W, H) {
   (o.xBands || []).forEach((b) => {
     const x0 = x(Math.max(b.from, xMin)), x1 = x(Math.min(b.to, xMax));
     g += `<rect x="${x0.toFixed(1)}" y="${plotTop}" width="${(x1 - x0).toFixed(1)}" height="${(plotBot - plotTop).toFixed(1)}" fill="${b.fill || "rgba(107,98,86,.06)"}"/>`;
-    if (b.label) { const lx = (x0 + x1) / 2, ly = plotTop - 8; g += txt(lx, ly, "middle", `fill="${C.muted}" font-size="10.5" font-weight="600"`, b.label); reserveL(lx, b.label.length * 5.9, ly, "middle"); }
+    if (b.label) { const lx = (x0 + x1) / 2, ly = plotTop + 16; g += txt(lx, ly, "middle", `fill="${C.muted}" font-size="10.5" font-weight="600"`, b.label); reserveL(lx, b.label.length * 5.9, ly, "middle"); }
   });
 
   // horizontal reference lines / bands — labels sit BELOW the line, left by default (right on request)
